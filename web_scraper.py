@@ -78,6 +78,7 @@ def get_movie_information(driver: webdriver.Chrome) -> List[MovieInfo]:
             date = date_section.find_element(
                 By.CSS_SELECTOR, "h3.date-title.highlight-foreground").get_attribute("innerHTML")        #date_title = date_section.find_element(By.XPATH, ".//h3[@class='date-title highlight-foreground']")  # Use XPath to find the h3
         except:
+            print("passss")
             pass
             
         movie_elements = date_section.find_elements(By.CLASS_NAME, "film ")
@@ -112,7 +113,7 @@ def get_movie_information(driver: webdriver.Chrome) -> List[MovieInfo]:
                     except:
                         status = "Available"
                     
-                    sessions.append(MovieSession(time=time, status=status))
+                    sessions.append(MovieSession(time=time, status=status, link=link))
                 
                 movies.append(MovieInfo(
                     title=title,
@@ -149,6 +150,21 @@ def print_movie_schedule(movies: List[MovieInfo]):
             print(f"  {session.time} - {session.status}")
 
 
+def bubble(func):
+    def wrapper(*args, **kwargs):
+        if kwargs.get("can_fail"):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                # print(!!!!!!!!!!!!"")
+                # print(f"Caught error in {func.__name__}: {str(e)}")
+                return None  # Return None instead of silently failing
+        else:
+            return func(*args, **kwargs)
+    return wrapper
+
+
+
 
 def click(item):
     item.click()
@@ -159,26 +175,75 @@ actions = {
 
 func = {
     "id" : By.ID,
-    "class": By.CLASS_NAME
+    "class": By.CLASS_NAME,
+    "selector": By.CSS_SELECTOR,
+    "tag": By.TAG_NAME
 }
 
-def get(type, element: DictConfig, multiple = False):
+# @bubble
+def get_attr(item, asset):
+   return item.get_attribute(asset.field)
+
+# @bubble
+def text_member(item, asset):
+   return item.text
+
+asset_getter = {
+    "get_attribute" : get_attr,
+    "text_member" : text_member
+}
+
+@bubble
+def unpack_item(root, type, element: DictConfig, multiple, **kwargs):
+    print()
     print(element.field)
-    print(element.by)
+    print(element.by)     
+    print(element.get("can_fail"))
+    print(kwargs.get("can_fail"))
+
     if multiple:
-        items = driver.find_elements(type, element.field)
-        print("--")
+        items = root.find_elements(type, element.field)
+        print("items:", len(items))
+        for i, item in enumerate(items):
+            print(f"FIELD {i}/{len(items)}:", element.field)
+            print("---1")
+            unpack(item, element.child)
+            print("---2")
+    else:
+        # try:
+        item = root.find_element(type, element.field)
+        if element.get("action"):
+            for a in element.action:
+                actions[a](item)
+        if element.get("asset"):
+            a = element.asset
+            # try:
+            print(a.name, asset_getter[a.method](item, a))
+            # except:
+            #     pass
 
-    item = driver.find_element(type, element.field)
-    print("-")
-    for a in element.action:
-        actions[a](item)
+        # except:
+        #     pass
+        #     # if kwargs.get("can_fail"):
 
+        #     #     pass
+        #     # else:
+        #     #     raise Exception
 
+@bubble
+def unpack(root, config: DictConfig):
+    print(config)
+    for c in config:
+        print("--3")
+        unpack_item(
+            root,
+            func[c.by],
+            c,
+            c.get("multiple", False),
+            can_fail = c.get("can_fail", False)
+        )
+        print("--4")
 
-def unpack(config: DictConfig):
-    for element in config.structure:
-        get(func[element.by], element, element.get("multiple", False))
         
 
 
@@ -196,7 +261,7 @@ def main(config: DictConfig):
             EC.presence_of_element_located((By.CLASS_NAME, "date"))
         )
         
-        unpack(config.four_star)
+        unpack(driver, config.four_star.dates_list)
 
         # # Get and print movie information
         # movies = get_movie_information(driver)
