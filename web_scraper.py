@@ -4,7 +4,9 @@ import selenium
 import hydra
 from omegaconf import DictConfig, OmegaConf
 import selenium.webdriver
-
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium.common.exceptions import NoSuchElementException
 
 # from selenium import webdriver
 # from selenium.webdriver.chrome.service import Service
@@ -150,99 +152,85 @@ def print_movie_schedule(movies: List[MovieInfo]):
             print(f"  {session.time} - {session.status}")
 
 
-def bubble(func):
+
+
+
+
+
+
+def catch_optional(func):
     def wrapper(*args, **kwargs):
-        if kwargs.get("can_fail"):
+        if kwargs.get("optional"):
             try:
                 return func(*args, **kwargs)
-            except Exception as e:
-                # print(!!!!!!!!!!!!"")
-                # print(f"Caught error in {func.__name__}: {str(e)}")
-                return None  # Return None instead of silently failing
+            except NoSuchElementException:
+                print("----- Optional element -----")
+                return None
         else:
             return func(*args, **kwargs)
     return wrapper
 
 
 
+ATTRIBUTE_ID = {
+    "id" : By.ID,
+    "class_name": By.CLASS_NAME,
+    "css_selector": By.CSS_SELECTOR,
+    "tag_name": By.TAG_NAME
+}
 
-def click(item):
+def element_click(item: WebElement) -> None:
     item.click()
 
-actions = {
-    "click" : click
+ELEMENT_ACTIONS = {
+    "click" : element_click
 }
 
-func = {
-    "id" : By.ID,
-    "class": By.CLASS_NAME,
-    "selector": By.CSS_SELECTOR,
-    "tag": By.TAG_NAME
-}
 
-# @bubble
-def get_attr(item, asset):
-   return item.get_attribute(asset.field)
+def get_element_attribute(element: WebElement, asset: DictConfig) -> str:
+   return element.get_attribute(asset.field)
 
-# @bubble
-def text_member(item, asset):
+def get_element_text(item: WebElement, _asset: DictConfig) -> str:
    return item.text
 
-asset_getter = {
-    "get_attribute" : get_attr,
-    "text_member" : text_member
+ASSET_GETTER = {
+    "get_attribute" : get_element_attribute,
+    "text_member" : get_element_text
 }
 
-@bubble
-def unpack_item(root, type, element: DictConfig, multiple, **kwargs):
-    print()
-    print(element.field)
-    print(element.by)     
-    print(element.get("can_fail"))
-    print(kwargs.get("can_fail"))
+@catch_optional
+def unpack_element(root: WebDriver | WebElement, attribute_id, config: DictConfig, **kwargs) -> None:
+    """
+    Unpack single element.
+    """
+    if config.get("child"):
+        elements = root.find_elements(attribute_id, config.field)
+        for e in elements:
+            unpack_list(e, config.child)
 
-    if multiple:
-        items = root.find_elements(type, element.field)
-        print("items:", len(items))
-        for i, item in enumerate(items):
-            print(f"FIELD {i}/{len(items)}:", element.field)
-            print("---1")
-            unpack(item, element.child)
-            print("---2")
     else:
-        # try:
-        item = root.find_element(type, element.field)
-        if element.get("action"):
-            for a in element.action:
-                actions[a](item)
-        if element.get("asset"):
-            a = element.asset
-            # try:
-            print(a.name, asset_getter[a.method](item, a))
-            # except:
-            #     pass
+        element = root.find_element(attribute_id, config.field)
+        if config.get("action"):
+            for a in config.action:
+                ELEMENT_ACTIONS[a](element)
 
-        # except:
-        #     pass
-        #     # if kwargs.get("can_fail"):
+        if config.get("asset"):
+            # this should assign assets
+            a = config.asset
+            print(a.name, ASSET_GETTER[a.method](element, a))
 
-        #     #     pass
-        #     # else:
-        #     #     raise Exception
-
-@bubble
-def unpack(root, config: DictConfig):
-    print(config)
+@catch_optional
+def unpack_list(root: WebDriver | WebElement, config: DictConfig) -> None:
+    """
+    Unpack config list.
+    """
     for c in config:
-        print("--3")
-        unpack_item(
+        unpack_element(
             root,
-            func[c.by],
+            ATTRIBUTE_ID[c.by],
             c,
-            c.get("multiple", False),
-            can_fail = c.get("can_fail", False)
+            optional = c.get("optional", False)
         )
-        print("--4")
 
         
 
@@ -252,20 +240,20 @@ def main(config: DictConfig):
 
     try:
 
+        dates_list: DictConfig = config.four_star.dates_list
+        first_element: DictConfig = dates_list[0]
 
         # Replace with your actual URL
         driver.get(movie_site)
         
         # Wait for the content to load
         WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "date"))
+            EC.presence_of_element_located((
+                ATTRIBUTE_ID[first_element.by], 
+                first_element.field))
         )
         
-        unpack(driver, config.four_star.dates_list)
-
-        # # Get and print movie information
-        # movies = get_movie_information(driver)
-        # # print_movie_schedule(movies)
+        unpack_list(driver, dates_list)
         
     finally:
         driver.quit()

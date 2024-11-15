@@ -1,51 +1,58 @@
 dates_list:
+
   - by: id
     field: "byDateTab"
     action: [click]
-  - by: class
+
+  - by: class_name
     field: "date"
-    multiple: true
     child:
-      - by: selector
+
+      - by: css_selector
         field: "h3.date-title.highlight-foreground"
-        can_fail: true
+        optional: true
         asset:
           name: date
           method: get_attribute
           field: "innerHTML"
-      - by: class
+
+      - by: class_name
         field: "film "
-        multiple: true
         child:
-          - by: selector
+
+          - by: css_selector
             field: "h3.title"
             asset:
               name: title
               method: get_attribute
               field: "innerHTML"
-          - by: class
+
+          - by: class_name
             field: "censor"
             asset:
               name: rating
               method: text_member
-          - by: selector
+
+          - by: css_selector
             field: ".session-times li"
-            multiple: true
             child:
-              - by: tag
+
+              - by: tag_name
                 field: "time"
                 asset:
                   name: time
                   method: text_member
-              - by: tag
+
+              - by: tag_name
                 field: "a"
                 asset:
                   name: link
                   method: get_attribute
                   field: "href"
-              - by: class
+
+              - by: class_name
                 field: "tickets-sold-out"
-                can_fail: true
+                optional: true
                 asset:
                   name: available
                   method: text_member
