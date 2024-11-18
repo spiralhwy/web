@@ -41,7 +41,7 @@ jobs:
       - run: npx @11ty/eleventy
       - run: ls
       - run: pip install -r ./src/requirements.txt
-      - run: ./src/webscraper.py
+      - run: ./src/web_scraper.py
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
