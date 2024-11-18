@@ -246,7 +246,7 @@ def main(config: DictConfig):
                 driver = get_driver()
         
         json_path = Path(__file__).parent / "_data/movies.json"
-        ws.save_json(json)
+        ws.save_json(json_path)
 
     finally:
         driver.quit()
