@@ -38,10 +38,11 @@ jobs:
         with:
           node-version: "18"
       - run: npm install @11ty/eleventy
-      - run: npx @11ty/eleventy
       - run: ls
       - run: pip install -r ./src/requirements.txt
       - run: ./src/web_scraper.py
+      - name: build
+        run: npx @11ty/eleventy
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
