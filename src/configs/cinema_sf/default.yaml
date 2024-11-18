@@ -1,6 +1,6 @@
 websites:
-  # - theater: balboa
-  #   link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=52wkfzmjpwjjfpz3ye7tz8wscg"
+  - theater: balboa
+    link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=52wkfzmjpwjjfpz3ye7tz8wscg"
   - theater: four_star
     link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=d2atbcege5knqsavntt91g1250"
   - theater: vogue
