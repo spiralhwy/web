@@ -236,9 +236,13 @@ def main(config: DictConfig):
     try:
         driver = get_driver()
         for w in config.cinema_sf.websites:
-            print(f"---------- scrape {w.theater} ----------")
-            go_to_website(driver, w.link, cinema_sf_first_element)
-            ws.scrape(driver, cinema_sf_layout, w.theater)
+            try:
+                print(f"---------- scrape {w.theater} ----------")
+                go_to_website(driver, w.link, cinema_sf_first_element)
+                ws.scrape(driver, cinema_sf_layout, w.theater)
+            except:
+                print(f"---------- scrape failed {w.theater} ----------")
+                driver = get_driver()
 
         ws.save_json(Path(__file__).parent / "_data/movies.json")
 
