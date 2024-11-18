@@ -1,0 +1,56 @@
+
+{# src/index.njk #}
+---
+layout: base.njk
+title: Movie Listings
+---
+
+{% if movies %}
+  {% set dates = movies | getAllDates %}
+
+  {% for date in dates %}
+  <div class="date-section">
+      <h2 class="date-header">{{ date }}</h2>
+      
+      {% set moviesByTitle = movies | getMoviesByTitle(date) %}
+      
+      {% for movieTitle, movieInfo in moviesByTitle %}
+      <div class="movie-section">
+          <div class="movie-header">
+              <img 
+                src="/posters/{{ movieInfo.poster }}.png" 
+                alt="Poster for {{ movieInfo.title }}"
+                class="movie-poster"
+              >
+              <div class="movie-info">
+                  <h3 class="movie-title">{{ movieInfo.title }} {% if movieInfo.rating | length > 0 %}[{{ movieInfo.rating }}]{% endif %}</h3>
+                  
+                  {% for theater, showings in movieInfo.theaters %}
+                  <div class="theater-section">
+                      <h4 class="theater-name">{{ theater | replace("_", " ") | title }}</h4>
+                      
+                      <div class="showings">
+                          {% for showing in showings %}
+                          <div class="showing-time">
+                              <a href="{{ showing.link }}">{{ showing.time }}</a>
+                              {% if showing.available %}
+                                  ({{ showing.available }})
+                              {% endif %}
+                          </div>
+                          {% endfor %}
+                      </div>
+                  </div>
+                  {% endfor %}
+              </div>
+          </div>
+      </div>
+      --------------------------------------------------------------------------------
+
+      {% endfor %}
+  </div>
+
+  --------------------------------------------------------------------------------
+  {% endfor %}
+{% else %}
+  <p>No movie data available</p>
+{% endif %}

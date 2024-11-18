@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+import requests
+
 import json
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List
+import urllib.request
 
 import hydra
 import selenium.webdriver
@@ -31,6 +34,7 @@ class MovieShowing:
 @dataclass
 class MovieListing:
     date: str
+    poster: str
     rating: str
     showings: List[MovieShowing]
     title: str
@@ -116,26 +120,29 @@ class WebScraper:
         self.SPECIAL = {
             "create_listing": self.create_listing,
             "create_showing": self.create_showing,
+            "save_poster": self.save_poster,
         }
 
-    def create_listing(self):
+    def create_listing(self, element, config):
         if len(self.showings) == 0:
             return
 
         self.listings[self.theater].append(
             MovieListing(
                 deepcopy(self.assets["date"]),
+                deepcopy(self.assets["poster"]),
                 deepcopy(self.assets["rating"]),
                 deepcopy(self.showings),
                 deepcopy(self.assets["title"]),
             )
             # )
         )
+        self.assets["poster"] = ""
         self.assets["rating"] = ""
         self.showings.clear()
         self.assets["title"] = ""
 
-    def create_showing(self):
+    def create_showing(self, element, config):
         if not self.assets["link"] or not self.assets["time"]:
             return
 
@@ -153,6 +160,26 @@ class WebScraper:
     def save_json(self, path: Path):
         with open(path, "w", encoding="utf-8") as f:
             json.dump(self.listings, f, indent=4, default=lambda o: o.__dict__)
+
+    def save_poster(self, element: WebElement, config):
+        poster_name: str = ASSET_GETTER[config.asset.method](element, config.asset).lower()
+
+        import base64
+        file_name_string = base64.urlsafe_b64encode(poster_name.encode()).decode("utf-8")
+        self.assets["poster"] = file_name_string
+        
+        poster_src = element.get_attribute("src")
+        save_path = Path(__file__).parent / "_data" / "posters" / f"{file_name_string}.png"
+        save_path.parent.mkdir(exist_ok=True, parents=True)
+        save_path = str(save_path)
+
+
+
+
+        img_data = requests.get(poster_src).content
+        with open(save_path, 'wb') as handler:
+            handler.write(img_data)
+
 
     def scrape(self, root: WebDriver | WebElement, config: DictConfig, theater: str) -> None:
         self.theater = theater
@@ -172,7 +199,7 @@ class WebScraper:
                 self.unpack_list(e, config.child)
 
                 if config.get("child_special"):
-                    self.SPECIAL[config.child_special]()
+                    self.SPECIAL[config.child_special](e, config)
 
         else:
             element = root.find_element(attribute_id, config.field)
@@ -185,7 +212,7 @@ class WebScraper:
                 self.assets[a.name] = ASSET_GETTER[a.method](element, a)
 
             if config.get("special"):
-                self.SPECIAL[config.special]()
+                self.SPECIAL[config.special](element, config)
 
     @catch_optional
     def unpack_list(self, root: WebDriver | WebElement, config: DictConfig) -> None:
@@ -213,7 +240,7 @@ def main(config: DictConfig):
             go_to_website(driver, w.link, cinema_sf_first_element)
             ws.scrape(driver, cinema_sf_layout, w.theater)
 
-        ws.save_json(Path(__file__).parent / "listings.json")
+        ws.save_json(Path(__file__).parent / "_data/movies.json")
 
     finally:
         driver.quit()
