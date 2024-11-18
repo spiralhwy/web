@@ -1,5 +1,12 @@
-dates_list:
+websites:
+  - theater: four_star
+    link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=d2atbcege5knqsavntt91g1250"
+  # - theater: balboa
+  #   link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=52wkfzmjpwjjfpz3ye7tz8wscg"
+  # - theater: vogue
+  #   link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=qkwymq4me4nthdzzgj9fe08j0r"
 
+dates_list:
   - by: id
     field: "byDateTab"
     action: [click]
@@ -18,6 +25,7 @@ dates_list:
 
       - by: class_name
         field: "film "
+        child_special: create_listing
         child:
 
           - by: css_selector
@@ -37,10 +45,12 @@ dates_list:
             field: ".session-times li"
             child:
 
-              - by: tag_name
-                field: "time"
+              
+              - by: class_name
+                field: "tickets-sold-out"
+                optional: true
                 asset:
-                  name: time
+                  name: available
                   method: text_member
 
               - by: tag_name
@@ -50,9 +60,9 @@ dates_list:
                   method: get_attribute
                   field: "href"
 
-              - by: class_name
-                field: "tickets-sold-out"
-                optional: true
+              - by: tag_name
+                field: "time"
+                special: create_showing 
                 asset:
-                  name: available
+                  name: time
                   method: text_member
