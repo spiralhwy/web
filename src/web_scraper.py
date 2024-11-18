@@ -158,6 +158,7 @@ class WebScraper:
         self.assets["time"] = ""
 
     def save_json(self, path: Path):
+        path.parent.mkdir(exist_ok=True, parents=True)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(self.listings, f, indent=4, default=lambda o: o.__dict__)
 
@@ -243,8 +244,9 @@ def main(config: DictConfig):
             except:
                 print(f"---------- scrape failed {w.theater} ----------")
                 driver = get_driver()
-
-        ws.save_json(Path(__file__).parent / "_data/movies.json")
+        
+        json_path = Path(__file__).parent / "_data/movies.json"
+        ws.save_json(json)
 
     finally:
         driver.quit()
