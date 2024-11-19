@@ -1,0 +1,88 @@
+@font-face {
+    font-family: "anthony";
+    src: url("/fonts/anthony/Anthony.woff2") format("woff2"),
+        url("/fonts/anthony/Anthony.woff") format("woff"),
+        url("/fonts/anthony/Anthony.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+.site-title {
+    font-family: "anthony";
+    font-size: 5em;
+    text-align: center;
+}
+.date-section {
+    margin: 3em 0;
+    padding: 1em;
+}
+.date-header {
+    font-size: 2em;
+    margin-bottom: 1em;
+    border-bottom: 2px solid #333;
+    padding-bottom: 0.5em;
+}
+.movie-section {
+    margin: 2em 0;
+    padding: 1em;
+    background: #f8f8f8;
+    border-radius: 8px;
+}
+.movie-header {
+    display: flex;
+    align-items: start;
+    gap: 1.5em;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 1px solid #ddd;
+}
+.movie-poster {
+    width: 120px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.movie-info {
+    flex: 1;
+}
+.movie-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0 0 0.5em 0;
+}
+.movie-rating {
+    display: inline-block;
+    padding: 0.2em 0.8em;
+    background: #eee;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+.theater-section {
+    margin: 1em 0;
+    padding: 0.5em 1em;
+}
+.theater-name {
+    font-size: 1.2em;
+    color: #444;
+    margin: 0.5em 0;
+}
+.showings {
+    margin: 0.5em 0 1em 1em;
+}
+.showing-time {
+    display: inline-block;
+    margin: 0.3em 0.8em 0.3em 0;
+}
+.showing-time a {
+    color: #0066cc;
+    text-decoration: none;
+    padding: 0.3em 0.6em;
+    border: 1px solid #0066cc;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+.showing-time a:hover {
+    background: #0066cc;
+    color: white;
+}
