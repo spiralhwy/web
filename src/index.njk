@@ -1,39 +1,32 @@
-
 {# src/index.njk #}
 <h1>Spiral HWY</h1>
 <h2>Independent Theaters in San Francisco</h2>
 ******************************************************************************************
 ******************************************************************************************
 ******************************************************************************************
-
 {% if movies %}
-  {% set dates = movies | getAllDates %}
-
-  {% for date in dates %}
+  {% for date, moviesForDate in movies | groupBy("date") %}
   <div class="date-section">
-      <h2 class="date-header">{{ date }}</h2>
+      <h2 class="date-header">{{ date | formatDate }}</h2>
       
-      {% set moviesByTitle = movies | getMoviesByTitle(date) %}
-      
-      {% for movieTitle, movieInfo in moviesByTitle %}
+      {% for movie in moviesForDate | sortByEarliestShowing %}
       <div class="movie-section">
           <div class="movie-header">
               <img 
-                src="posters/{{ movieInfo.poster }}.png" 
-                alt="Poster for {{ movieInfo.title }}"
+                src="posters/{{ movie.poster }}.png" 
+                alt="Poster for {{ movie.title }}"
                 class="movie-poster"
               >
               <div class="movie-info">
-                  <h3 class="movie-title">{{ movieInfo.title }} {% if movieInfo.rating | length > 0 %}[{{ movieInfo.rating }}]{% endif %}</h3>
+                  <h3 class="movie-title">{{ movie.title }} {% if movie.rating | length > 0 %}[{{ movie.rating }}]{% endif %}</h3>
                   
-                  {% for theater, showings in movieInfo.theaters %}
                   <div class="theater-section">
-                      <h4 class="theater-name">{{ theater | replace("_", " ") | title }}</h4>
+                      <h4 class="theater-name">{{ movie.theater | replace("_", " ") | title }}</h4>
                       
                       <div class="showings">
-                          {% for showing in showings %}
+                          {% for showing in movie.showings %}
                           <div class="showing-time">
-                              <a href="{{ showing.link }}">{{ showing.time }}</a>
+                              <a href="{{ showing.link }}">{{ showing.time | formatTime }}</a>
                               {% if showing.available %}
                                   ({{ showing.available }})
                               {% endif %}
@@ -41,15 +34,12 @@
                           {% endfor %}
                       </div>
                   </div>
-                  {% endfor %}
               </div>
           </div>
       </div>
       --------------------------------------------------------------------------------
-
       {% endfor %}
   </div>
-
   --------------------------------------------------------------------------------
   {% endfor %}
 {% else %}

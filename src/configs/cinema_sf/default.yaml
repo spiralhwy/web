@@ -1,11 +1,10 @@
 websites:
-  - theater: balboa
-    link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=52wkfzmjpwjjfpz3ye7tz8wscg"
   - theater: four_star
     link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=d2atbcege5knqsavntt91g1250"
   - theater: vogue
     link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=qkwymq4me4nthdzzgj9fe08j0r"
-
+  # - theater: balboa
+  #   link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=52wkfzmjpwjjfpz3ye7tz8wscg"
 dates_list:
   - by: id
     field: "byDateTab"
@@ -22,6 +21,9 @@ dates_list:
           name: date
           method: get_attribute
           field: "innerHTML"
+          special:
+            method: convert_date
+            format: "%A %d, %B %Y"
 
       - by: class_name
         field: "film "
@@ -74,3 +76,6 @@ dates_list:
                 asset:
                   name: time
                   method: text_member
+                  special:
+                    method: convert_time
+                    format: "%I:%M %p"

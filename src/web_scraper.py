@@ -37,6 +37,7 @@ class MovieListing:
     poster: str
     rating: str
     showings: List[MovieShowing]
+    theater: str
     title: str
 
 
@@ -58,7 +59,7 @@ ATTRIBUTE_ID = {
     "class_name": By.CLASS_NAME,
     "css_selector": By.CSS_SELECTOR,
     "tag_name": By.TAG_NAME,
-}  # print(a.name, ASSET_GETTER[a.method](element, a))
+}  
 
 
 def element_click(item: WebElement) -> None:
@@ -103,7 +104,6 @@ def get_driver() -> WebDriver:
 class WebScraper:
 
     def __init__(self):
-        self.theater: str
 
         self.assets = {
             "available": "",
@@ -111,6 +111,7 @@ class WebScraper:
             "link": "",
             "rating": "",
             "time": "",
+            "theater": "",
             "title": "",
         }
 
@@ -118,25 +119,62 @@ class WebScraper:
         self.listings: Dict[str, List[MovieListing]] = dict()
 
         self.SPECIAL = {
+            "convert_date": self.convert_date,
+            "convert_time": self.convert_time,
             "create_listing": self.create_listing,
             "create_showing": self.create_showing,
             "save_poster": self.save_poster,
         }
 
-    def create_listing(self, element, config):
+    def convert_date(self, asset: DictConfig):
+        from datetime import datetime, timedelta
+
+        # Get today's date
+        today = datetime.now()
+        yesterday = today - timedelta(days=1)
+        
+        # First try current year
+        current_year = today.year
+        date_str_with_year = f"{self.assets["date"]} {current_year}"
+        
+        try:
+            date_obj = datetime.strptime(date_str_with_year, asset.special.format)
+            
+            # If the date is before yesterday, add a year
+            if date_obj < yesterday:
+                date_obj = datetime.strptime(f"{self.assets["date"]} {current_year + 1}", "%A %d, %B %Y")
+                
+            self.assets["date"] = date_obj.strftime("%Y%m%d")
+        except ValueError as e:
+            return f"Error parsing date: {e}"
+
+    def convert_time(self, asset: DictConfig):
+        from datetime import datetime, timedelta
+
+        
+        try:
+            date_obj = datetime.strptime(self.assets["time"], asset.special.format)    
+            self.assets["time"] = date_obj.strftime("%H%M")
+        except ValueError as e:
+            return f"Error parsing time: {e}"
+
+
+    def create_listing(self, _element: WebElement, _config: DictConfig):
         if len(self.showings) == 0:
             return
-
-        self.listings[self.theater].append(
+        
+        listings_of_date = self.listings.get(self.assets["date"], list())
+        listings_of_date.append(
             MovieListing(
                 deepcopy(self.assets["date"]),
                 deepcopy(self.assets["poster"]),
                 deepcopy(self.assets["rating"]),
                 deepcopy(self.showings),
+                deepcopy(self.assets["theater"]),
                 deepcopy(self.assets["title"]),
             )
-            # )
         )
+        self.listings.update({self.assets["date"]: listings_of_date})
         self.assets["poster"] = ""
         self.assets["rating"] = ""
         self.showings.clear()
@@ -183,9 +221,8 @@ class WebScraper:
 
 
     def scrape(self, root: WebDriver | WebElement, config: DictConfig, theater: str) -> None:
-        self.theater = theater
+        self.assets["theater"] = theater
         self.showings = list()
-        self.listings[self.theater] = list()
         self.unpack_list(root, config)
 
     @catch_optional
@@ -211,6 +248,8 @@ class WebScraper:
             if config.get("asset"):
                 a = config.asset
                 self.assets[a.name] = ASSET_GETTER[a.method](element, a)
+                if a.get("special"):
+                    self.SPECIAL[a.special.method](a)
 
             if config.get("special"):
                 self.SPECIAL[config.special](element, config)
@@ -237,13 +276,13 @@ def main(config: DictConfig):
     try:
         driver = get_driver()
         for w in config.cinema_sf.websites:
-            try:
+            # try:
                 print(f"---------- scrape {w.theater} ----------")
                 go_to_website(driver, w.link, cinema_sf_first_element)
                 ws.scrape(driver, cinema_sf_layout, w.theater)
-            except:
-                print(f"---------- scrape failed {w.theater} ----------")
-                driver = get_driver()
+            # except:
+                # print(f"---------- scrape failed {w.theater} ----------")
+                # driver = get_driver()
         
         json_path = Path(__file__).parent / "_data/movies.json"
         ws.save_json(json_path)
