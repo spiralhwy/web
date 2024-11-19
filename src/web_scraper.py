@@ -9,6 +9,11 @@ from pathlib import Path
 from typing import Dict, List
 import urllib.request
 
+import time
+from datetime import datetime, timedelta
+
+
+
 import hydra
 import selenium.webdriver
 from omegaconf import DictConfig
@@ -62,8 +67,8 @@ ATTRIBUTE_ID = {
 }  
 
 
-def element_click(item: WebElement) -> None:
-    item.click()
+def element_click(element: WebElement) -> None:
+    element.click()
 
 
 ELEMENT_ACTIONS = {"click": element_click}
@@ -85,10 +90,14 @@ ASSET_GETTER = {"get_attribute": get_element_attribute, "text_member": get_eleme
 
 def go_to_website(driver, website, first_element):
     driver.get(website)
-    timeout_sec = 180
+    timeout_sec = 60
     WebDriverWait(driver, timeout_sec).until(
         EC.presence_of_element_located((ATTRIBUTE_ID[first_element.by], first_element.field))
     )
+    element = driver.find_element(ATTRIBUTE_ID[first_element.by], first_element.field)
+    driver.execute_script("arguments[0].scrollIntoView(true);", element)
+    time.sleep(0.5)
+
 
 
 def get_driver() -> WebDriver:
@@ -127,8 +136,6 @@ class WebScraper:
         }
 
     def convert_date(self, asset: DictConfig):
-        from datetime import datetime, timedelta
-
         # Get today's date
         today = datetime.now()
         yesterday = today - timedelta(days=1)
@@ -149,9 +156,6 @@ class WebScraper:
             return f"Error parsing date: {e}"
 
     def convert_time(self, asset: DictConfig):
-        from datetime import datetime, timedelta
-
-        
         try:
             date_obj = datetime.strptime(self.assets["time"], asset.special.format)    
             self.assets["time"] = date_obj.strftime("%H%M")
