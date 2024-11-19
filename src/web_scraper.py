@@ -135,14 +135,14 @@ class WebScraper:
         
         # First try current year
         current_year = today.year
-        date_str_with_year = f"{self.assets["date"]} {current_year}"
+        date_str_with_year = f'{self.assets["date"]} {current_year}'
         
         try:
             date_obj = datetime.strptime(date_str_with_year, asset.special.format)
             
             # If the date is before yesterday, add a year
             if date_obj < yesterday:
-                date_obj = datetime.strptime(f"{self.assets["date"]} {current_year + 1}", "%A %d, %B %Y")
+                date_obj = datetime.strptime(f'{self.assets["date"]} {current_year + 1}', "%A %d, %B %Y")
                 
             self.assets["date"] = date_obj.strftime("%Y%m%d")
         except ValueError as e:
@@ -276,13 +276,13 @@ def main(config: DictConfig):
     try:
         driver = get_driver()
         for w in config.cinema_sf.websites:
-            # try:
+            try:
                 print(f"---------- scrape {w.theater} ----------")
                 go_to_website(driver, w.link, cinema_sf_first_element)
                 ws.scrape(driver, cinema_sf_layout, w.theater)
-            # except:
-                # print(f"---------- scrape failed {w.theater} ----------")
-                # driver = get_driver()
+            except:
+                print(f"---------- scrape failed {w.theater} ----------")
+                driver = get_driver()
         
         json_path = Path(__file__).parent / "_data/movies.json"
         ws.save_json(json_path)
