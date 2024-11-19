@@ -33,7 +33,7 @@
                       <div class="showings">
                           {% for showing in movie.showings %}
                           <div class="showing-time">
-                              <a href="{{ showing.link }}">{{ showing.time | formatTime }}</a>
+                              <a href="{{ showing.link }}" target="_blank">{{ showing.time | formatTime }}</a>
                               {% if showing.available %}
                                   ({{ showing.available }})
                               {% endif %}
