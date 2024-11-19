@@ -1,4 +1,6 @@
 websites:
+  - theater: roxie
+    link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=4m48btf3yavn7xjk5yxk6nc40c"
   - theater: four_star
     link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=d2atbcege5knqsavntt91g1250"
   - theater: vogue
