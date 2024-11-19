@@ -1,8 +1,8 @@
 @font-face {
     font-family: "anthony";
-    src: url("../fonts/anthony/Anthony.woff2") format("woff2"),
-        url("../fonts/anthony/Anthony.woff") format("woff"),
-        url("../fonts/anthony/Anthony.otf") format("opentype");
+    src: url("./fonts/anthony/Anthony.woff2") format("woff2"),
+        url("./fonts/anthony/Anthony.woff") format("woff"),
+        url("./fonts/anthony/Anthony.otf") format("opentype");
     font-weight: normal;
     font-style: normal;
     font-display: swap;

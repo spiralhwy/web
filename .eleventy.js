@@ -2,7 +2,7 @@ module.exports = function(eleventyConfig) {
   // Add passthrough copy for posters
   eleventyConfig.addPassthroughCopy({ "src/_data/posters": "posters" });
   eleventyConfig.addPassthroughCopy({ "src/_fonts": "fonts" });
-  eleventyConfig.addPassthroughCopy({ "src/css": "css" });
+  eleventyConfig.addPassthroughCopy({ "src/css/styles.css": "styles.css" });
 
   // Format date as "DayOfWeek DD, Month"
   eleventyConfig.addFilter("formatDate", function(dateString) {
