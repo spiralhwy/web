@@ -7,22 +7,22 @@ websites:
     link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=d2atbcege5knqsavntt91g1250"
     area: richmond
     map: "https://maps.app.goo.gl/Kpjn8gz3WxZavAcx8"
-  # - theater: vogue_theatre
-  #   link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=qkwymq4me4nthdzzgj9fe08j0r"
-  #   area: presidio
-  #   map: "https://maps.app.goo.gl/YGgAszs1fqrprekv9"
-  # - theater: balboa_theatre
-  #   link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=52wkfzmjpwjjfpz3ye7tz8wscg"
-  #   area: richmond
-  #   map: "https://maps.app.goo.gl/aNRmvpa8FdHfmksr7"
-  # - theater: presidio_theatre
-  #   link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=exw1fqegkb8zg17ea110x0czsm"
-  #   area: marina
-  #   map: "https://maps.app.goo.gl/mT88V7hUFqrmHfKJ8"
-  # - theater: marina_theater
-  #   link: "https://ticketing.uswest.veezi.com/sessions/hzckdcvtvtf1wbd6pdkzvx6fgc"
-  #   area: marina
-  #   map: "https://maps.app.goo.gl/4SowFiP5LWtwj12a9"
+  - theater: vogue_theatre
+    link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=qkwymq4me4nthdzzgj9fe08j0r"
+    area: presidio
+    map: "https://maps.app.goo.gl/YGgAszs1fqrprekv9"
+  - theater: balboa_theatre
+    link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=52wkfzmjpwjjfpz3ye7tz8wscg"
+    area: richmond
+    map: "https://maps.app.goo.gl/aNRmvpa8FdHfmksr7"
+  - theater: presidio_theatre
+    link: "https://ticketing.uswest.veezi.com/sessions/?siteToken=exw1fqegkb8zg17ea110x0czsm"
+    area: marina
+    map: "https://maps.app.goo.gl/mT88V7hUFqrmHfKJ8"
+  - theater: marina_theater
+    link: "https://ticketing.uswest.veezi.com/sessions/hzckdcvtvtf1wbd6pdkzvx6fgc"
+    area: marina
+    map: "https://maps.app.goo.gl/4SowFiP5LWtwj12a9"
 
 
 dates_list:
