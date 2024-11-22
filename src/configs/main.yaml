@@ -1,4 +1,5 @@
 defaults:
-  - cinema_sf: default
+  - veezi: default
+  - fandango: default
   - override hydra/hydra_logging: disabled  
   - override hydra/job_logging: disabled  

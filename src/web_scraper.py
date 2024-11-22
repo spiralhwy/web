@@ -44,6 +44,9 @@ class MovieListing:
     showings: List[MovieShowing]
     theater: str
     title: str
+    map: str
+    area: str
+    theater_link: str
 
 
 def catch_optional(func):
@@ -85,7 +88,13 @@ def get_element_text(item: WebElement, _asset: DictConfig) -> str:
     return item.text.strip()
 
 
-ASSET_GETTER = {"get_attribute": get_element_attribute, "text_member": get_element_text}
+def fandango_get_rating(element: WebElement, asset: DictConfig) -> str:
+    output = get_element_attribute(element, asset)
+    return output.split(",")[0]
+
+
+ASSET_GETTER = {"get_attribute": get_element_attribute, "text_member": get_element_text,
+                "fandango_get_rating" : fandango_get_rating}
 
 
 def go_to_website(driver, website, first_element):
@@ -97,6 +106,16 @@ def go_to_website(driver, website, first_element):
     element = driver.find_element(ATTRIBUTE_ID[first_element.by], first_element.field)
     driver.execute_script("arguments[0].scrollIntoView(true);", element)
     time.sleep(0.5)
+
+
+    # # Scroll to the bottom of the page
+    # driver.execute_script("window.scrollTo(0, document.body.scrollHeight)") 
+
+
+    # # Wait for the lazy loaded element to appear
+    # lazy_loaded_element = WebDriverWait(driver, 10).until(
+    #     EC.presence_of_element_located((ATTRIBUTE_ID[first_element.by], first_element.field))  
+    # )   
 
 
 
@@ -115,13 +134,16 @@ class WebScraper:
     def __init__(self):
 
         self.assets = {
+            "area": "",
             "available": "",
             "date": "",
             "link": "",
+            "map": "",
             "rating": "",
             "time": "",
             "theater": "",
             "title": "",
+            "theater_link": "",
         }
 
         self.showings: List[MovieShowing]
@@ -176,6 +198,9 @@ class WebScraper:
                 deepcopy(self.showings),
                 deepcopy(self.assets["theater"]),
                 deepcopy(self.assets["title"]),
+                deepcopy(self.assets["map"]),
+                deepcopy(self.assets["area"]),
+                deepcopy(self.assets["theater_link"]),
             )
         )
         self.listings.update({self.assets["date"]: listings_of_date})
@@ -224,8 +249,11 @@ class WebScraper:
             handler.write(img_data)
 
 
-    def scrape(self, root: WebDriver | WebElement, config: DictConfig, theater: str) -> None:
-        self.assets["theater"] = theater
+    def scrape(self, root: WebDriver | WebElement, config: DictConfig, website: str) -> None:
+        self.assets["theater"] = website.theater
+        self.assets["map"] = website.map
+        self.assets["area"] = website.area
+        self.assets["theater_link"] = website.link
         self.showings = list()
         self.unpack_list(root, config)
 
@@ -247,7 +275,19 @@ class WebScraper:
             element = root.find_element(attribute_id, config.field)
             if config.get("action"):
                 for a in config.action:
+
                     ELEMENT_ACTIONS[a](element)
+
+                #                 if config.get("actions"):
+                # for a in config.actions:
+
+                #     if a.get("asset"):
+                #         a = a.asset
+                #         self.assets[a.name] = ASSET_GETTER[a.method](element, a)
+                #         if a.get("special"):
+                #             self.SPECIAL[a.special.method](a)
+                #     else:
+                #         ELEMENT_ACTIONS[a](element)
 
             if config.get("asset"):
                 a = config.asset
@@ -274,16 +314,19 @@ def main(config: DictConfig):
 
     ws = WebScraper()
 
-    cinema_sf_layout: DictConfig = config.cinema_sf.dates_list
-    cinema_sf_first_element = cinema_sf_layout[0]
+    layout: DictConfig = config.veezi.dates_list
+    first_element = layout[0]
+
+    # layout: DictConfig = config.fandango.dates_list
+    # first_element = layout[0]
 
     try:
         driver = get_driver()
-        for w in config.cinema_sf.websites:
+        for w in config.veezi.websites:
             try:
                 print(f"---------- scrape {w.theater} ----------")
-                go_to_website(driver, w.link, cinema_sf_first_element)
-                ws.scrape(driver, cinema_sf_layout, w.theater)
+                go_to_website(driver, w.link, first_element)
+                ws.scrape(driver, layout, w)
             except:
                 print(f"---------- scrape failed {w.theater} ----------")
                 driver = get_driver()

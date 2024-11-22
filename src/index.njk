@@ -5,51 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
 </head>
+<body>
+    <h1 class="site-title">Spiral HWY</h1>
+    <h2>Independent Theaters in San Francisco</h2>
 
-<h1 class="site-title">Spiral HWY</h1>
-<h2>Independent Theaters in San Francisco</h2>
-******************************************************************************************
-******************************************************************************************
-******************************************************************************************
-{% if movies %}
-  {% for date, moviesForDate in movies | groupBy("date") %}
-  <div class="date-section">
-      <h2 class="date-header">{{ date | formatDate }}</h2>
-      
-      {% for movie in moviesForDate | sortByEarliestShowing %}
-      <div class="movie-section">
-          <div class="movie-header">
-              <img 
-                src="posters/{{ movie.poster }}.png" 
-                alt="Poster for {{ movie.title }}"
-                class="movie-poster"
-              >
-              <div class="movie-info">
-                  <h3 class="movie-title">{{ movie.title }} {% if movie.rating | length > 0 %}[{{ movie.rating }}]{% endif %}</h3>
-                  
-                  <div class="theater-section">
-                      <h4 class="theater-name">{{ movie.theater | replace("_", " ") | title }}</h4>
+    {% if movies %}
+      {% for date, moviesForDate in movies | groupBy("date") %}
+      <div class="date-section">
+          <h2 class="date-header">{{ date | formatDate }}</h2>
+          
+          {% for movie in moviesForDate | groupByTitle %}
+          <div class="movie-section">
+              <div class="movie-header">
+                  <img 
+                    src="posters/{{ movie.poster }}.png" 
+                    alt="Poster for {{ movie.title }}"
+                    class="movie-poster"
+                  >
+                  <div class="movie-info">
+                      <h3 class="movie-title">{{ movie.title }} {% if movie.rating | length > 0 %}[{{ movie.rating }}]{% endif %}</h3>
                       
-                      <div class="showings">
-                          {% for showing in movie.showings %}
-                          <div class="showing-time">
-                              <a href="{{ showing.link }}" target="_blank">{{ showing.time | formatTime }}</a>
-                              {% if showing.available %}
-                                  ({{ showing.available }})
-                              {% endif %}
+                      {% for theater in movie.theaters %}
+                      <div class="theater-section">
+                          <h4 class="theater-name">
+                              <a href="{{ theater.theater_link }}" target="_blank">
+                                {{ theater.name | replace("_", " ") | title }}
+                              </a>
+                              [<a href="{{ theater.map }}" target="_blank" class="area-link">
+                                {{ theater.area | title }}
+                              </a>]
+                          </h4>
+                          
+                          <div class="showings">
+                              {% for showing in theater.showings %}
+                              <div class="showing-time">
+                                  <a href="{{ showing.link }}" target="_blank">{{ showing.time | formatTime }}</a>
+                                  {% if showing.available %}
+                                      ({{ showing.available }})
+                                  {% endif %}
+                              </div>
+                              {% endfor %}
                           </div>
-                          {% endfor %}
                       </div>
+                      {% endfor %}
                   </div>
               </div>
           </div>
+          {% endfor %}
       </div>
       {% endfor %}
-  </div>
-  {% endfor %}
-{% else %}
-  <p>No movie data available</p>
-{% endif %}
-
-
+    {% else %}
+      <p>No movie data available</p>
+    {% endif %}
+</body>
 </html>
