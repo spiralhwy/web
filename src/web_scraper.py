@@ -324,7 +324,7 @@ def main(config: DictConfig):
         for w in config.veezi.websites:
             try:
                 print(f"---------- scrape {w.theater} ----------")
-                go_to_website(driver, w.link, first_element)
+                go_to_website(driver, w.showings, first_element)
                 ws.scrape(driver, layout, w)
             except:
                 print(f"---------- scrape failed {w.theater} ----------")

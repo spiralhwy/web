@@ -78,8 +78,10 @@ body {
 
 .movie-title {
     font-size: 1.35em;
-    margin-bottom: 15px;
+    margin-top: 0px;
+    margin-bottom: 0px;
     width: 100%;
+    /* line-height: 1em; */
 }
 
 .showtimes {
