@@ -16,85 +16,94 @@
     font-display: swap;
 }
 
-
+/* Base styles */
 body {
     background-color: #1f1f1f;
     color: #ffffff;
-    /* font-family: monospace; */
     font-family: ibm_mono;
     width: 90%;
     max-width: 900px;
     margin: 0 auto;
     padding: 20px;
-    font-size: 1.4em;
+    font-size: 16px;
+    line-height: 1.4;
 }
 
 .site-title {
     font-family: "anthony";
     font-size: 4em;
     text-align: center;
-}
-
-.movie-info .area-link {
-    color: #707070;
-    text-decoration: none;
-}
-
-.movie-info .area-link .a:hover{
-    color: #ff0000;
-}
-
-.movie-info .area-link .a:visited{
-    color: #707070;
-}
-
-.movie-rating {
-    color: #707070;
-}
-
-
-a.area-link {
-    color: #707070;
-    text-decoration: none;
-}
-
-a.area-link:hover{
-    color: #ff0000;
-}
-
-
-
-
-
-.divider {
-    border-bottom: 1px solid #ffffff;
-    margin: 20px 0;
+    word-break: break-word;
 }
 
 .movie-block {
     margin: 20px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .poster-container {
     width: 120px;
     height: 180px;
     border: 1px solid #ffffff;
-    display: inline-block;
-    vertical-align: top;
-    margin-right: 20px;
-    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.poster-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .movie-info {
-    display: inline-block;
-    vertical-align: top;
-    max-width: calc(100% - 150px);
+    flex: 1;
+    min-width: 250px;
 }
 
 .theater-info {
     margin: 10px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: baseline;
 }
 
+.movie-title {
+    font-size: 1.35em;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.showtimes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-left: 10px;
+}
+
+.time {
+    white-space: nowrap;
+}
+
+.time.sold-out {
+    text-decoration: line-through;
+    color: #b2b2b2;
+    pointer-events: none;
+}
+
+.date {
+    font-size: 1.2em;
+    margin: 100px 0 0 0;
+}
+
+.divider {
+    border-bottom: 1px solid #ffffff;
+    margin: 20px 0;
+    width: 100%;
+}
+
+/* Links */
 a {
     color: #ffffff;
     text-decoration: none;
@@ -104,26 +113,79 @@ a:hover {
     color: #ff0000;
 }
 
-
-
-
-.showtimes {
-    display: inline;
-    margin-left: 10px;
+a.area-link {
+    color: #707070;
+    text-decoration: none;
 }
 
-.time {
-    margin-right: 10px;
+a.area-link:hover {
+    color: #ff0000;
 }
 
-.time.sold-out {
-    text-decoration: line-through;
-    color:#b2b2b2;
-    pointer-events: none;
+/* Mobile Responsive Styles */
+@media screen and (max-width: 768px) {
+    body {
+        width: 95%;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .site-title {
+        font-size: 3em;
+        margin-bottom: 20px;
+    }
+
+    .movie-block {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .movie-info {
+        width: 100%;
+    }
+
+    .theater-info {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .showtimes {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .date {
+        font-size: 1.1em;
+        margin: 60px 0 0 0;
+    }
+
+    .movie-title {
+        font-size: 1.2em;
+    }
 }
 
-.date {
-    font-size: 1.2em;
-    margin: 100px 0 0 0;
-}
+@media screen and (max-width: 480px) {
+    body {
+        width: 100%;
+        padding: 10px;
+        font-size: 13px;
+    }
 
+    .site-title {
+        font-size: 2.5em;
+    }
+
+    .poster-container {
+        width: 100px;
+        height: 150px;
+    }
+
+    .movie-title {
+        font-size: 1.1em;
+    }
+
+    .showtimes {
+        gap: 5px;
+    }
+}

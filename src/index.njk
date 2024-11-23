@@ -18,7 +18,7 @@
             
             {% for movie in moviesForDate | groupByTitle %}
                 <div class="movie-block">
-                    <h2>{{ movie.title }} {# {% if movie.rating | length > 0 %}<span class="movie-rating">{{ movie.rating }}</span>{% endif %} #}</h2>
+                    <h2 class="movie-title">{{ movie.title }} {# {% if movie.rating | length > 0 %}<span class="movie-rating">{{ movie.rating }}</span>{% endif %} #}</h2>
                     <div class="poster-container">
                         <img 
                             src="posters/{{ movie.poster }}.png" 

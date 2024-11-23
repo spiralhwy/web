@@ -197,7 +197,7 @@ class WebScraper:
                 deepcopy(self.assets["rating"]),
                 deepcopy(self.showings),
                 deepcopy(self.assets["theater"]),
-                deepcopy(self.assets["title"]),
+                deepcopy(self.assets["title"]).replace("&amp;", "&"),
                 deepcopy(self.assets["map"]),
                 deepcopy(self.assets["area"]),
                 deepcopy(self.assets["theater_link"]),
