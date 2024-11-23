@@ -9,6 +9,11 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+  # Schedules the workflow to run every day at 5 AM PT (1 PM UTC)
+  schedule:
+    - cron: '0 13 * * *'  # Runs at 1 PM UTC (5 AM PT)
+
+
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
