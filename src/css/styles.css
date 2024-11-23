@@ -36,6 +36,13 @@ body {
     word-break: break-word;
 }
 
+.site-subtitle {
+    font-family: "ibm_mono";
+    font-size: 0.9em;
+    text-align: center;
+    word-break: break-word;
+}
+
 .movie-block {
     margin: 20px 0;
     display: flex;
@@ -122,6 +129,19 @@ a.area-link:hover {
     color: #ff0000;
 }
 
+
+
+    /* Create container for theater name and area */
+    .theater-name {
+        display: inline;
+    }
+
+    /* Add comma after theater name */
+    .theater-name::after {
+        content: "";
+        margin-right: 6px;
+    }
+
 /* Mobile Responsive Styles */
 @media screen and (max-width: 768px) {
     body {
@@ -145,16 +165,6 @@ a.area-link:hover {
         width: 100%;
     }
 
-    .theater-info {
-        flex-direction: column;
-        gap: 5px;
-    }
-
-    .showtimes {
-        margin-left: 0;
-        width: 100%;
-    }
-
     .date {
         font-size: 1.1em;
         margin: 60px 0 0 0;
@@ -163,7 +173,32 @@ a.area-link:hover {
     .movie-title {
         font-size: 1.2em;
     }
+    
+    .theater-info {
+        display: flex;
+        flex-direction: row; /* Change from column back to row */
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+
+    /* Create container for theater name and area */
+    /* .theater-name {
+        display: inline;
+    } */
+
+    /* Add comma after theater name */
+    /* .theater-name::after {
+        content: "";
+        margin-right: 8px;
+    } */
+
+    .showtimes {
+        width: 100%;
+        margin-top: 5px;
+    }
 }
+
 
 @media screen and (max-width: 480px) {
     body {
