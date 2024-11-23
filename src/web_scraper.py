@@ -241,12 +241,11 @@ class WebScraper:
         save_path.parent.mkdir(exist_ok=True, parents=True)
         save_path = str(save_path)
 
+        if not Path(save_path).exists():
 
-
-
-        img_data = requests.get(poster_src).content
-        with open(save_path, 'wb') as handler:
-            handler.write(img_data)
+            img_data = requests.get(poster_src).content
+            with open(save_path, 'wb') as handler:
+                handler.write(img_data)
 
 
     def scrape(self, root: WebDriver | WebElement, config: DictConfig, website: str) -> None:
