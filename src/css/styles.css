@@ -226,3 +226,63 @@ a.area-link:hover {
         gap: 5px;
     }
 }
+
+
+/* Existing styles remain the same */
+/* Keep existing styles and add/modify these */
+
+.sticky-wrapper {
+    position: sticky;
+    top: 0;
+    background-color: #1f1f1f;
+    z-index: 1000;
+    width: 100%;
+    padding: 20px 0 10px;  /* Padding top only */
+}
+
+/* Create border container to match divider width */
+.sticky-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 900px;  /* Match body max-width */
+    border-bottom: 1px solid #ffffff;
+}
+
+.date {
+    font-size: 1.2em;
+    margin: 100px auto 15px;
+    max-width: 900px;  /* Match body max-width */
+    padding: 0 20px ;  /* Match body padding */
+}
+
+.sticky-wrapper .date {
+    margin: 0 auto 15px;
+}
+
+/* Update media queries */
+@media screen and (max-width: 768px) {
+    .date {
+        font-size: 1.1em;
+        margin: 60px auto 15px;
+        padding: 0 10px;  /* Match body padding */
+    }
+    
+    .sticky-wrapper .date {
+        margin: 0 auto 10px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .sticky-wrapper {
+        padding: 8px 0 0;
+    }
+    
+    .date {
+        font-size: 1em;
+        padding: 0 10px;
+    }
+}

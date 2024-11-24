@@ -8,15 +8,15 @@
 </head>
 <body>
     <header>
-  <h1 class="site-title">Spiral HWY</h1>
-    <h2 class="site-subtitle">San Francisco Independent Theater Showings</h2>
-
+        <h1 class="site-title">Spiral HWY</h1>
+        <h2 class="site-subtitle">San Francisco Independent Theater Showings</h2>
     </header>
-
     {% if movies %}
         {% for date, moviesForDate in movies | groupBy("date") %}
-            <div class="date">{{ date | formatDate }}</div>
-            <div class="divider"></div>
+            <div class="sticky-wrapper">
+                <div class="date">{{ date | formatDate }}</div>
+            </div>
+            {# <div class="divider"></div> #}
             
             {% for movie in moviesForDate | groupByTitle %}
                 <div class="movie-block">
@@ -60,7 +60,13 @@
                 </div>
                 {% if not loop.last %}
                     <div class="divider"></div>
+                {% else %}
+                </br>
+                </br>
+                </br>
+                </br>
                 {% endif %}
+
             {% endfor %}
         {% endfor %}
     {% else %}
