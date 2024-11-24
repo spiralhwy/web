@@ -11,6 +11,8 @@
         <h1 class="site-title">Spiral HWY</h1>
         <h2 class="site-subtitle">San Francisco Independent Theater Showings</h2>
     </header>
+    </br>
+    </br>
     {% if movies %}
         {% for date, moviesForDate in movies | groupBy("date") %}
             <div class="sticky-wrapper">
