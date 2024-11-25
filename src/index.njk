@@ -1,78 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spiral HWY</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <header>
-        <h1 class="site-title">Spiral HWY</h1>
-        <h2 class="site-subtitle">San Francisco Independent Theater Showings</h2>
-    </header>
-    </br>
-    </br>
-    {% if movies %}
-        {% for date, moviesForDate in movies | groupBy("date") %}
-            <div class="sticky-wrapper">
-                <div class="date">{{ date | formatDate }}</div>
-            </div>
-            {# <div class="divider"></div> #}
-            
-            {% for movie in moviesForDate | groupByTitle %}
-                <div class="movie-block">
-                    <h2 class="movie-title">{{ movie.title }} {# {% if movie.rating | length > 0 %}<span class="movie-rating">{{ movie.rating }}</span>{% endif %} #}</h2>
-                    <div class="poster-container">
-                        <img 
-                            src="posters/{{ movie.poster }}.png" 
-                            alt="Poster for {{ movie.title }}"
-                            width="120"
-                            height="180"
-                        >
-                    </div>
-                    <div class="movie-info">
-                        {% for theater in movie.theaters %}
-                            <div class="theater-info">
-                                <a href="{{ theater.theater_link }}" target="_blank" class="theater-name">
-                                    {{ theater.name | replace("_", " ") | title }}
-                                </a> 
-                                <a href="{{ theater.map }}" target="_blank" class="area-link" >
-                                    {{ theater.area | title }}
-                                </a>
-                                <span class="showtimes">
-                                    {% for showing in theater.showings %}
-                                        <a href="{{ showing.link }}" 
-                                           target="_blank" 
-                                           class="time {% if showing.available == 'SOLD OUT' %}sold-out{% endif %}">
-                                            {{ showing.time | formatTime }}
-                                        </a>
-                                        {# {% if showing.available and showing.available != 'Sold Out' %}
-                                            ({{ showing.available }})
-                                        {% endif %} #}
-                                        {% if not loop.last %}
-                    |
-                {% endif %}
-                                        
-                                    {% endfor %}
-                                </span>
-                            </div>
-                        {% endfor %}
-                    </div>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Spiral HWY - San Francisco Independent Theater Showings, showcasing the best indie films in the city.">
+        <meta name="keywords" content="Spiral HWY, San Francisco theater, indie films, independent theater, movie showings, San Francisco events">
+        <title>Spiral HWY</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <header>
+            <h1 class="site-title">Spiral HWY</h1>
+            <h2 class="site-subtitle">San Francisco Independent Theater Showings</h2>
+        </header>
+        </br>
+        </br>
+        {% if movies %}
+            {% for date, moviesForDate in movies | groupBy("date") %}
+                <div class="sticky-wrapper">
+                    <div class="date">{{ date | formatDate }}</div>
                 </div>
-                {% if not loop.last %}
-                    <div class="divider"></div>
-                {% else %}
-                </br>
-                </br>
-                </br>
-                </br>
-                {% endif %}
-
-            {% endfor %}
-        {% endfor %}
-    {% else %}
-        <p>No movie data available</p>
-    {% endif %}
-</body>
+                {% for movie in moviesForDate | groupByTitle %}
+                    <div class="movie-block">
+                        <h2 class="movie-title">{{ movie.title }}</h2>
+                        <div class="poster-container">
+                            <img 
+                                src="posters/{{ movie.poster }}.png" 
+                                alt="Poster for {{ movie.title }}"
+                                width="120"
+                                height="180"
+                            >
+                        </div>
+                        <div class="movie-info">
+                            {% for theater in movie.theaters %}
+                                <div class="theater-info">
+                                    <a href="{{ theater.theater_link }}" target="_blank" class="theater-name">
+                                        {{ theater.name | replace("_", " ") | title }}
+                                    </a> 
+                                    <a href="{{ theater.map }}" target="_blank" class="area-link" >
+                                        {{ theater.area | title }}
+                                    </a>
+                                    <span class="showtimes">
+                                        {% for showing in theater.showings %}
+                                            <a href="{{ showing.link }}" 
+                                            target="_blank" 
+                                            class="time {% if showing.available == 'SOLD OUT' %}sold-out{% endif %}">
+                                                {{ showing.time | formatTime }}
+                                            </a>
+                                            {% if not loop.last %} | {% endif %}
+                                        {% endfor %}  {# showing #}
+                                    </span>
+                                </div>
+                            {% endfor %}  {# theater #}
+                        </div>
+                    </div>
+                    {% if not loop.last %}
+                        <div class="divider"></div>
+                    {% else %}
+                    </br>
+                    </br>
+                    </br>
+                    </br>
+                    {% endif %}
+                {% endfor %}  {# movie #}
+            {% endfor %}  {# date #}
+        {% else %}
+            <p>No movie data available</p>
+        {% endif %}
+    </body>
 </html>

@@ -1,3 +1,4 @@
+---
 websites:
   - theater: roxie_theater
     showings: "https://ticketing.uswest.veezi.com/sessions/?siteToken=4m48btf3yavn7xjk5yxk6nc40c"
@@ -81,7 +82,6 @@ dates_list:
             field: ".session-times li"
             child:
 
-              
               - by: class_name
                 field: "tickets-sold-out"
                 optional: true
@@ -98,7 +98,7 @@ dates_list:
 
               - by: tag_name
                 field: "time"
-                special: create_showing 
+                special: create_showing
                 asset:
                   name: time
                   method: text_member

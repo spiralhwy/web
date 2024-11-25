@@ -1,0 +1,51 @@
+[tool.poetry]
+name = "spiral-hwy"
+version = "0.1.0"
+description = ""
+authors = ["MJG"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+hydra-core = "^1.3.2"
+black = "^24.10.0"
+yamllint = "^1.35.1"
+requests = "^2.32.3"
+selenium = "^4.26.1"
+webdriver-manager = "^4.0.2"
+djlint = "^1.36.1"
+
+
+[tool.poetry.group.dev.dependencies]
+poethepoet = "^0.31.0"
+
+[tool.poe.tasks.lint-py]
+help = "Lint PY"
+shell = """black $(find . -type f -name '*.py' -not -path '*/.*')"""
+
+
+[tool.poe.tasks.lint-yml]
+help = "Lint YAML"
+shell = """yamllint -d '{extends: default, rules: {line-length: {max: 120}}}' $(find . -type f -name '*.yaml' -not -path '*/.*')"""
+
+
+[tool.poe.tasks.lint-njk]
+help = "Lint NJK."
+shell = """djlint ./src/*.njk --profile=nunjucks"""
+
+
+[tool.poe.tasks.lint-css]
+help = "Lint CSS"
+cmd = "npx stylelint 'src/**/*.css' --fix"
+
+[tool.poe.tasks.lint] 
+sequence = ["lint-py", "lint-yml", "lint-css", "lint-njk"]
+ignore_fail = true
+
+[tool.poe.tasks.serve] 
+cmd = "npm start"  # TODO: make this a proper eleventy cmd
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

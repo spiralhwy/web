@@ -44,7 +44,11 @@ jobs:
           node-version: "18"
       - run: npm install @11ty/eleventy
       - run: ls
-      - run: pip install -r ./src/requirements.txt
+      # - run: pip install -r ./src/requirements.txt
+      - name: Install Poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
+      - name: Start Poetry
+        run: poetry shell
       - run: ./src/web_scraper.py
       - name: build
         run: npx @11ty/eleventy

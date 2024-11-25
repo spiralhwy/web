@@ -13,7 +13,6 @@ import time
 from datetime import datetime, timedelta
 
 
-
 import hydra
 import selenium.webdriver
 from omegaconf import DictConfig
@@ -67,7 +66,7 @@ ATTRIBUTE_ID = {
     "class_name": By.CLASS_NAME,
     "css_selector": By.CSS_SELECTOR,
     "tag_name": By.TAG_NAME,
-}  
+}
 
 
 def element_click(element: WebElement) -> None:
@@ -93,30 +92,32 @@ def fandango_get_rating(element: WebElement, asset: DictConfig) -> str:
     return output.split(",")[0]
 
 
-ASSET_GETTER = {"get_attribute": get_element_attribute, "text_member": get_element_text,
-                "fandango_get_rating" : fandango_get_rating}
+ASSET_GETTER = {
+    "get_attribute": get_element_attribute,
+    "text_member": get_element_text,
+    "fandango_get_rating": fandango_get_rating,
+}
 
 
 def go_to_website(driver, website, first_element):
     driver.get(website)
     timeout_sec = 60
     WebDriverWait(driver, timeout_sec).until(
-        EC.presence_of_element_located((ATTRIBUTE_ID[first_element.by], first_element.field))
+        EC.presence_of_element_located(
+            (ATTRIBUTE_ID[first_element.by], first_element.field)
+        )
     )
     element = driver.find_element(ATTRIBUTE_ID[first_element.by], first_element.field)
     driver.execute_script("arguments[0].scrollIntoView(true);", element)
     time.sleep(0.5)
 
-
     # # Scroll to the bottom of the page
-    # driver.execute_script("window.scrollTo(0, document.body.scrollHeight)") 
-
+    # driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
 
     # # Wait for the lazy loaded element to appear
     # lazy_loaded_element = WebDriverWait(driver, 10).until(
-    #     EC.presence_of_element_located((ATTRIBUTE_ID[first_element.by], first_element.field))  
-    # )   
-
+    #     EC.presence_of_element_located((ATTRIBUTE_ID[first_element.by], first_element.field))
+    # )
 
 
 def get_driver() -> WebDriver:
@@ -124,7 +125,9 @@ def get_driver() -> WebDriver:
     chrome_options.add_argument("--headless")  # Run in headless mode (no GUI)
     chrome_options.add_argument("--disable-notifications")  # Disable notifications
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()), options=chrome_options
+    )
 
     return driver
 
@@ -161,34 +164,35 @@ class WebScraper:
         # Get today's date
         today = datetime.now()
         yesterday = today - timedelta(days=1)
-        
+
         # First try current year
         current_year = today.year
         date_str_with_year = f'{self.assets["date"]} {current_year}'
-        
+
         try:
             date_obj = datetime.strptime(date_str_with_year, asset.special.format)
-            
+
             # If the date is before yesterday, add a year
             if date_obj < yesterday:
-                date_obj = datetime.strptime(f'{self.assets["date"]} {current_year + 1}', "%A %d, %B %Y")
-                
+                date_obj = datetime.strptime(
+                    f'{self.assets["date"]} {current_year + 1}', "%A %d, %B %Y"
+                )
+
             self.assets["date"] = date_obj.strftime("%Y%m%d")
         except ValueError as e:
             return f"Error parsing date: {e}"
 
     def convert_time(self, asset: DictConfig):
         try:
-            date_obj = datetime.strptime(self.assets["time"], asset.special.format)    
+            date_obj = datetime.strptime(self.assets["time"], asset.special.format)
             self.assets["time"] = date_obj.strftime("%H%M")
         except ValueError as e:
             return f"Error parsing time: {e}"
 
-
     def create_listing(self, _element: WebElement, _config: DictConfig):
         if len(self.showings) == 0:
             return
-        
+
         listings_of_date = self.listings.get(self.assets["date"], list())
         listings_of_date.append(
             MovieListing(
@@ -230,25 +234,33 @@ class WebScraper:
             json.dump(self.listings, f, indent=4, default=lambda o: o.__dict__)
 
     def save_poster(self, element: WebElement, config):
-        poster_name: str = ASSET_GETTER[config.asset.method](element, config.asset).lower()
+        poster_name: str = ASSET_GETTER[config.asset.method](
+            element, config.asset
+        ).lower()
 
         import base64
-        file_name_string = base64.urlsafe_b64encode(poster_name.encode()).decode("utf-8")
+
+        file_name_string = base64.urlsafe_b64encode(poster_name.encode()).decode(
+            "utf-8"
+        )
         self.assets["poster"] = file_name_string
-        
+
         poster_src = element.get_attribute("src")
-        save_path = Path(__file__).parent / "_data" / "posters" / f"{file_name_string}.png"
+        save_path = (
+            Path(__file__).parent / "_data" / "posters" / f"{file_name_string}.png"
+        )
         save_path.parent.mkdir(exist_ok=True, parents=True)
         save_path = str(save_path)
 
         if not Path(save_path).exists():
 
             img_data = requests.get(poster_src).content
-            with open(save_path, 'wb') as handler:
+            with open(save_path, "wb") as handler:
                 handler.write(img_data)
 
-
-    def scrape(self, root: WebDriver | WebElement, config: DictConfig, website: str) -> None:
+    def scrape(
+        self, root: WebDriver | WebElement, config: DictConfig, website: str
+    ) -> None:
         self.assets["theater"] = website.theater
         self.assets["map"] = website.map
         self.assets["area"] = website.area
@@ -257,7 +269,9 @@ class WebScraper:
         self.unpack_list(root, config)
 
     @catch_optional
-    def unpack_element(self, root: WebDriver | WebElement, attribute_id, config: DictConfig, **kwargs) -> None:
+    def unpack_element(
+        self, root: WebDriver | WebElement, attribute_id, config: DictConfig, **kwargs
+    ) -> None:
         """
         Unpack single element.
         """
@@ -303,9 +317,9 @@ class WebScraper:
         Unpack config list.
         """
         for c in config:
-            self.unpack_element(root, ATTRIBUTE_ID[c.by], c, optional=c.get("optional", False))
-
-
+            self.unpack_element(
+                root, ATTRIBUTE_ID[c.by], c, optional=c.get("optional", False)
+            )
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="main")
@@ -329,7 +343,7 @@ def main(config: DictConfig):
             except:
                 print(f"---------- scrape failed {w.theater} ----------")
                 driver = get_driver()
-        
+
         json_path = Path(__file__).parent / "_data/movies.json"
         ws.save_json(json_path)
 

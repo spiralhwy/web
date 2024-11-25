@@ -1,5 +1,5 @@
 @font-face {
-    font-family: "anthony";
+    font-family: anthony;
     src: url("./fonts/anthony/Anthony.woff2") format("woff2"),
         url("./fonts/anthony/Anthony.woff") format("woff"),
         url("./fonts/anthony/Anthony.otf") format("opentype");
@@ -19,8 +19,8 @@
 /* Base styles */
 body {
     background-color: #1f1f1f;
-    color: #ffffff;
-    font-family: ibm_mono;
+    color: #fff;
+    font-family: "ibm_mono", monospace;
     width: 90%;
     max-width: 900px;
     margin: 0 auto;
@@ -30,14 +30,14 @@ body {
 }
 
 .site-title {
-    font-family: "anthony";
+    font-family: anthony, serif;
     font-size: 4em;
     text-align: center;
     word-break: break-word;
 }
 
 .site-subtitle {
-    font-family: "ibm_mono";
+    font-family: "ibm_mono", monospace;
     font-size: 0.9em;
     text-align: center;
     word-break: break-word;
@@ -53,7 +53,7 @@ body {
 .poster-container {
     width: 120px;
     height: 180px;
-    border: 1px solid #ffffff;
+    border: 1px solid #fff;
     flex-shrink: 0;
 }
 
@@ -78,9 +78,10 @@ body {
 
 .movie-title {
     font-size: 1.35em;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin-top: 0;
+    margin-bottom: 0;
     width: 100%;
+
     /* line-height: 1em; */
 }
 
@@ -101,25 +102,21 @@ body {
     pointer-events: none;
 }
 
-.date {
-    font-size: 1.2em;
-    margin: 100px 0 0 0;
-}
 
 .divider {
-    border-bottom: 1px solid #ffffff;
+    border-bottom: 1px solid #fff;
     margin: 20px 0;
     width: 100%;
 }
 
 /* Links */
 a {
-    color: #ffffff;
+    color: #fff;
     text-decoration: none;
 }
 
 a:hover {
-    color: #ff0000;
+    color: #f00;
 }
 
 a.area-link {
@@ -128,7 +125,7 @@ a.area-link {
 }
 
 a.area-link:hover {
-    color: #ff0000;
+    color: #f00;
 }
 
 
@@ -145,7 +142,7 @@ a.area-link:hover {
     }
 
 /* Mobile Responsive Styles */
-@media screen and (max-width: 768px) {
+@media screen and (width <= 768px) {
     body {
         width: 95%;
         padding: 10px;
@@ -169,7 +166,7 @@ a.area-link:hover {
 
     .date {
         font-size: 1.1em;
-        margin: 60px 0 0 0;
+        margin: 60px 0 0;
     }
 
     .movie-title {
@@ -178,18 +175,19 @@ a.area-link:hover {
     
     .theater-info {
         display: flex;
-        flex-direction: row; /* Change from column back to row */
-        flex-wrap: wrap;
+        flex-flow: row wrap; /* Change from column back to row */
         gap: 5px;
         margin-bottom: 10px;
     }
 
     /* Create container for theater name and area */
+
     /* .theater-name {
         display: inline;
     } */
 
     /* Add comma after theater name */
+
     /* .theater-name::after {
         content: "";
         margin-right: 8px;
@@ -202,7 +200,7 @@ a.area-link:hover {
 }
 
 
-@media screen and (max-width: 480px) {
+@media screen and (width <= 480px) {
     body {
         width: 100%;
         padding: 10px;
@@ -229,6 +227,7 @@ a.area-link:hover {
 
 
 /* Existing styles remain the same */
+
 /* Keep existing styles and add/modify these */
 
 .sticky-wrapper {
@@ -249,7 +248,7 @@ a.area-link:hover {
     transform: translateX(-50%);
     width: 100%;
     max-width: 900px;  /* Match body max-width */
-    border-bottom: 1px solid #ffffff;
+    border-bottom: 1px solid #fff;
 }
 
 .date {
@@ -264,7 +263,7 @@ a.area-link:hover {
 }
 
 /* Update media queries */
-@media screen and (max-width: 768px) {
+@media screen and (width <= 768px) {
     .date {
         font-size: 1.1em;
         margin: 60px auto 15px;
@@ -276,9 +275,9 @@ a.area-link:hover {
     }
 }
 
-@media screen and (max-width: 480px) {
+@media screen and (width <= 480px) {
     .sticky-wrapper {
-        padding: 10px 0 10px;
+        padding: 10px 0;
     }
     
     .date {
