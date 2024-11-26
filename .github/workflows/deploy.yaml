@@ -36,28 +36,35 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: "18"
-      - run: npm install @11ty/eleventy
-      - run: ls
-      # - run: pip install -r ./src/requirements.txt
+
+      - name: Install Eleventy
+        run: npm install @11ty/eleventy
+
       - name: Install Poetry
         run: curl -sSL https://install.python-poetry.org | python3 -
+
       - name: Start Poetry
         run: poetry install --no-interaction
+
       - name: Run WebScraper
         run: poetry run ./src/web_scraper.py
+
       - name: build
         run: npx @11ty/eleventy
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
           path: './public'
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

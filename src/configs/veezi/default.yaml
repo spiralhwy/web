@@ -1,30 +1,36 @@
 ---
 websites:
+
   - theater: roxie_theater
     showings: "https://ticketing.uswest.veezi.com/sessions/?siteToken=4m48btf3yavn7xjk5yxk6nc40c"
     link: "https://roxie.com/"
     area: mission
     map: "https://maps.app.goo.gl/jXTW7AGx4ZHC5VYHA"
+
   - theater: 4_star_theater
     showings: "https://ticketing.uswest.veezi.com/sessions/?siteToken=d2atbcege5knqsavntt91g1250"
     link: "https://www.4-star-movies.com/"
     area: richmond
     map: "https://maps.app.goo.gl/Kpjn8gz3WxZavAcx8"
+
   - theater: vogue_theatre
     showings: "https://ticketing.uswest.veezi.com/sessions/?siteToken=qkwymq4me4nthdzzgj9fe08j0r"
     link: "https://www.voguemovies.com/"
     area: presidio
     map: "https://maps.app.goo.gl/YGgAszs1fqrprekv9"
+
   - theater: balboa_theatre
     showings: "https://ticketing.uswest.veezi.com/sessions/?siteToken=52wkfzmjpwjjfpz3ye7tz8wscg"
     link: "https://www.balboamovies.com/"
     area: richmond
     map: "https://maps.app.goo.gl/aNRmvpa8FdHfmksr7"
+
   - theater: presidio_theatre
     showings: "https://ticketing.uswest.veezi.com/sessions/?siteToken=exw1fqegkb8zg17ea110x0czsm"
     link: "https://www.lntsf.com/presidio-theatre"
     area: marina
     map: "https://maps.app.goo.gl/mT88V7hUFqrmHfKJ8"
+
   - theater: marina_theater
     showings: "https://ticketing.uswest.veezi.com/sessions/hzckdcvtvtf1wbd6pdkzvx6fgc"
     link: "https://www.lntsf.com/marina-theatre"
@@ -33,6 +39,7 @@ websites:
 
 
 dates_list:
+
   - by: id
     field: "byDateTab"
     action: [click]

@@ -1,5 +1,6 @@
 // .eleventy.js
 module.exports = function(eleventyConfig) {
+
   // Existing passthrough copy configurations
   eleventyConfig.addPassthroughCopy({ "src/_data/posters": "posters" });
   eleventyConfig.addPassthroughCopy({ "src/_fonts": "fonts" });
@@ -40,7 +41,7 @@ module.exports = function(eleventyConfig) {
 
   eleventyConfig.addFilter("groupByTitle", function(movies) {
     const grouped = {};
-    
+
     movies.forEach(movie => {
         if (!grouped[movie.title]) {
             grouped[movie.title] = {
@@ -51,7 +52,7 @@ module.exports = function(eleventyConfig) {
                 earliestTime: Math.min(...movie.showings.map(s => parseInt(s.time)))
             };
         }
-        
+
         grouped[movie.title].theaters.push({
             name: movie.theater,
             showings: movie.showings,
@@ -68,7 +69,6 @@ module.exports = function(eleventyConfig) {
     dir: {
       input: "src",
       output: "public",
-      includes: "_includes",
     }
   };
 };
