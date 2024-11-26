@@ -3,18 +3,15 @@
 import requests
 
 import json
-from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List
-import urllib.request
 
 import time
 from datetime import datetime, timedelta
 
 
 import hydra
-import selenium.webdriver
 from omegaconf import DictConfig
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
@@ -111,14 +108,6 @@ def go_to_website(driver, website, first_element):
     driver.execute_script("arguments[0].scrollIntoView(true);", element)
     time.sleep(0.5)
 
-    # # Scroll to the bottom of the page
-    # driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
-
-    # # Wait for the lazy loaded element to appear
-    # lazy_loaded_element = WebDriverWait(driver, 10).until(
-    #     EC.presence_of_element_located((ATTRIBUTE_ID[first_element.by], first_element.field))
-    # )
-
 
 def get_driver() -> WebDriver:
     chrome_options = Options()
@@ -196,15 +185,15 @@ class WebScraper:
         listings_of_date = self.listings.get(self.assets["date"], list())
         listings_of_date.append(
             MovieListing(
-                deepcopy(self.assets["date"]),
-                deepcopy(self.assets["poster"]),
-                deepcopy(self.assets["rating"]),
-                deepcopy(self.showings),
-                deepcopy(self.assets["theater"]),
-                deepcopy(self.assets["title"]).replace("&amp;", "&"),
-                deepcopy(self.assets["map"]),
-                deepcopy(self.assets["area"]),
-                deepcopy(self.assets["theater_link"]),
+                self.assets["date"],
+                self.assets["poster"],
+                self.assets["rating"],
+                self.showings.copy(),
+                self.assets["theater"],
+                self.assets["title"].replace("&amp;", "&"),
+                self.assets["map"],
+                self.assets["area"],
+                self.assets["theater_link"],
             )
         )
         self.listings.update({self.assets["date"]: listings_of_date})
@@ -219,9 +208,9 @@ class WebScraper:
 
         self.showings.append(
             MovieShowing(
-                deepcopy(self.assets["available"]),
-                deepcopy(self.assets["link"]),
-                deepcopy(self.assets["time"]),
+                self.assets["available"],
+                self.assets["link"],
+                self.assets["time"],
             )
         )
         self.assets["available"] = ""
