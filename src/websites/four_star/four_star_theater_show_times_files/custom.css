@@ -1,0 +1,12 @@
+body { background-color: #a3ec80; }
+.highlight-foreground { color: #f7732b; }
+.highlight-background { background-color: #f7732b; }
+.highlight-border-small { border: 1px solid #f7732b; }
+.highlight-border-medium { border: 2px solid #f7732b; }
+.highlight-transparent-border-colour { border-color: #f7732b transparent transparent transparent; }
+.highlight-flash { animation: flash 5s 1; } @keyframes flash { 0% { background-color: #f7732b33; } 100% { background-color: transparent; }}
+.decreased-highlight-opacity { background-color: #f7732bA8; }
+.action:hover { background-color: #f7732bA8; }
+.action-secondary:hover{ border-color: #f7732bA8; }
+.action-secondary span:hover{ color: #f7732bA8; }
+.action-secondary-button:hover{ border-color: #f7732bA8; }

@@ -1,0 +1,12 @@
+body { background-color: #9b1d1d; }
+.highlight-foreground { color: #336ec1; }
+.highlight-background { background-color: #336ec1; }
+.highlight-border-small { border: 1px solid #336ec1; }
+.highlight-border-medium { border: 2px solid #336ec1; }
+.highlight-transparent-border-colour { border-color: #336ec1 transparent transparent transparent; }
+.highlight-flash { animation: flash 5s 1; } @keyframes flash { 0% { background-color: #336ec133; } 100% { background-color: transparent; }}
+.decreased-highlight-opacity { background-color: #336ec1A8; }
+.action:hover { background-color: #336ec1A8; }
+.action-secondary:hover{ border-color: #336ec1A8; }
+.action-secondary span:hover{ color: #336ec1A8; }
+.action-secondary-button:hover{ border-color: #336ec1A8; }

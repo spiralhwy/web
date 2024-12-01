@@ -40,75 +40,98 @@ websites:
 
 dates_list:
 
-  - by: id
-    field: "byDateTab"
-    action: [click]
+  - field: byDateTab
+    by: id
+    actions:
+      - action: click
 
-  - by: class_name
-    field: "date"
-    child:
+  - field: date
+    by: class_name
+    meta:
+      - multiple
+    actions:
+      - action: unpack
+        children:
 
-      - by: css_selector
-        field: "h3.date-title.highlight-foreground"
-        optional: true
-        asset:
-          name: date
-          method: get_attribute
-          field: "innerHTML"
-          special:
-            method: convert_date
-            format: "%A %d, %B %Y"
+          - field: h3.date-title.highlight-foreground
+            by: css_selector
+            meta:
+              - optional
+            actions:
+              - action: get_asset
+                name: date
+                method: get_attribute
+                field: innerHTML
+                special:
+                  method: convert_date
+                  format: "%A %d, %B %Y"
 
-      - by: class_name
-        field: "film "
-        child_special: create_listing
-        child:
+          - field: "film "
+            by: class_name
+            meta:
+              - multiple
+            actions:
+              - action: unpack
+                children:
 
-          - by: css_selector
-            field: "h3.title"
-            asset:
-              name: title
-              method: get_attribute
-              field: "innerHTML"
+                  - field: h3.title
+                    by: css_selector
+                    actions:
+                      - action: get_asset
+                        name: title
+                        method: get_attribute
+                        field: innerHTML
 
-          - by: class_name
-            field: "censor"
-            asset:
-              name: rating
-              method: text_member
+                  - field: censor
+                    by: class_name
+                    actions:
+                      - action: get_asset
+                        name: rating
+                        method: text_member
 
-          - by: class_name
-            field: poster
-            special: save_poster
-            asset:
-              name: poster
-              method: get_attribute
-              field: "alt"
+                  - field: poster
+                    by: class_name
+                    actions:
+                      - action: get_asset
+                        name: poster
+                        method: get_attribute
+                        field: "alt"
+                      - action: save_poster
 
-          - by: css_selector
-            field: ".session-times li"
-            child:
+                  - field: ".session-times li"
+                    by: css_selector
+                    meta:
+                      - multiple
+                    actions:
+                      - action: unpack
+                        children:
 
-              - by: class_name
-                field: "tickets-sold-out"
-                optional: true
-                asset:
-                  name: available
-                  method: text_member
+                          - field: tickets-sold-out
+                            by: class_name
+                            meta:
+                              - optional
+                            actions:
+                              - action: get_asset
+                                name: available
+                                method: text_member
 
-              - by: tag_name
-                field: "a"
-                asset:
-                  name: link
-                  method: get_attribute
-                  field: "href"
+                          - field: a
+                            by: tag_name
+                            actions:
+                              - action: get_asset
+                                name: link
+                                method: get_attribute
+                                field: "href"
 
-              - by: tag_name
-                field: "time"
-                special: create_showing
-                asset:
-                  name: time
-                  method: text_member
-                  special:
-                    method: convert_time
-                    format: "%I:%M %p"
+                          - field: time
+                            by: tag_name
+                            actions:
+                              - action: get_asset
+                                name: time
+                                method: text_member
+                                special:
+                                  method: convert_time
+                                  format: "%I:%M %p"
+                              - action: create_showing
+
+              - action: create_listing  # For each film

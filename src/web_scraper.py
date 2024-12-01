@@ -9,6 +9,7 @@ from typing import Dict, List
 
 import time
 from datetime import datetime, timedelta
+import base64
 
 
 import hydra
@@ -124,7 +125,6 @@ def get_driver() -> WebDriver:
 class WebScraper:
 
     def __init__(self):
-
         self.assets = {
             "area": "",
             "available": "",
@@ -227,7 +227,6 @@ class WebScraper:
             element, config.asset
         ).lower()
 
-        import base64
 
         file_name_string = base64.urlsafe_b64encode(poster_name.encode()).decode(
             "utf-8"
@@ -242,8 +241,13 @@ class WebScraper:
         save_path = str(save_path)
 
         if not Path(save_path).exists():
+            if poster_src.startswith("file://"):
+                local_path = poster_src[7:]  # Strip off "file://"
+                with open(local_path, 'rb') as img_file:
+                    img_data = img_file.read()
+            else:
+                img_data = requests.get(poster_src).content
 
-            img_data = requests.get(poster_src).content
             with open(save_path, "wb") as handler:
                 handler.write(img_data)
 
@@ -314,7 +318,7 @@ class WebScraper:
 @hydra.main(version_base=None, config_path="configs", config_name="main")
 def main(config: DictConfig):
 
-    ws = WebScraper()
+    ws = WebScraper(local=True)
 
     layout: DictConfig = config.veezi.dates_list
     first_element = layout[0]
