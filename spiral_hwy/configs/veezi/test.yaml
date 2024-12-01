@@ -1,0 +1,40 @@
+---
+# @package _global_
+
+websites:
+
+  - theater: roxie_theater
+    showings: "websites/roxie/roxie_theater_show_times.html"
+    link: "https://roxie.com/"
+    area: mission
+    map: "https://maps.app.goo.gl/jXTW7AGx4ZHC5VYHA"
+
+  - theater: 4_star_theater
+    showings: "websites/four_star/four_star_theater_show_times.html"
+    link: "https://www.4-star-movies.com/"
+    area: richmond
+    map: "https://maps.app.goo.gl/Kpjn8gz3WxZavAcx8"
+
+  - theater: vogue_theatre
+    showings: "websites/vogue/vogue-theater-show-times.html"
+    link: "https://www.voguemovies.com/"
+    area: presidio
+    map: "https://maps.app.goo.gl/YGgAszs1fqrprekv9"
+
+  - theater: balboa_theatre
+    showings: "websites/balboa/balboa_star_theater_show_times.html"
+    link: "https://www.balboamovies.com/"
+    area: richmond
+    map: "https://maps.app.goo.gl/aNRmvpa8FdHfmksr7"
+
+  - theater: presidio_theatre
+    showings: "websites/presidio/presidio_star_theater_show_times.html"
+    link: "https://www.lntsf.com/presidio-theatre"
+    area: marina
+    map: "https://maps.app.goo.gl/mT88V7hUFqrmHfKJ8"
+
+  - theater: marina_theater
+    showings: "websites/marina/marina_star_theater_show_times.html"
+    link: "https://www.lntsf.com/marina-theatre"
+    area: marina
+    map: "https://maps.app.goo.gl/4SowFiP5LWtwj12a9"

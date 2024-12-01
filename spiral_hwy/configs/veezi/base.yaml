@@ -1,0 +1,75 @@
+---
+dates_list:
+
+  - by: id
+    field: "byDateTab"
+    action: [click]
+
+  - by: class_name
+    field: "date"
+    child:
+
+      - by: css_selector
+        field: "h3.date-title.highlight-foreground"
+        optional: true
+        asset:
+          name: date
+          method: get_attribute
+          field: "innerHTML"
+          special:
+            method: convert_date
+            format: "%A %d, %B %Y"
+
+      - by: class_name
+        field: "film "
+        child_special: create_listing
+        child:
+
+          - by: css_selector
+            field: "h3.title"
+            asset:
+              name: title
+              method: get_attribute
+              field: "innerHTML"
+
+          - by: class_name
+            field: "censor"
+            asset:
+              name: rating
+              method: text_member
+
+          - by: class_name
+            field: poster
+            special: save_poster
+            asset:
+              name: poster
+              method: get_attribute
+              field: "alt"
+
+          - by: css_selector
+            field: ".session-times li"
+            child:
+
+              - by: class_name
+                field: "tickets-sold-out"
+                optional: true
+                asset:
+                  name: available
+                  method: text_member
+
+              - by: tag_name
+                field: "a"
+                asset:
+                  name: link
+                  method: get_attribute
+                  field: "href"
+
+              - by: tag_name
+                field: "time"
+                special: create_showing
+                asset:
+                  name: time
+                  method: text_member
+                  special:
+                    method: convert_time
+                    format: "%I:%M %p"

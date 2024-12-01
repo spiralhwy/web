@@ -3,3 +3,5 @@
 node_modules
 public
 outputs
+__pycache__
+_data

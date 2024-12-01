@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["MJG"]
 readme = "README.md"
+packages = [{ include = "spiral_hwy/tools" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -14,10 +15,16 @@ requests = "^2.32.3"
 selenium = "^4.26.1"
 webdriver-manager = "^4.0.2"
 djlint = "^1.36.1"
-
+pytest = "^8.3.4"
+isort = "^5.13.2"
 
 [tool.poetry.group.dev.dependencies]
 poethepoet = "^0.31.0"
+
+
+[tool.poe.tasks.lint-isort]
+help = "Sort Python imports"
+shell = """isort $(find . -type f -name '*.py' -not -path '*/.*')"""
 
 [tool.poe.tasks.lint-py]
 help = "Lint PY"
@@ -39,7 +46,7 @@ help = "Lint CSS"
 cmd = "npx stylelint 'src/**/*.css' --fix"
 
 [tool.poe.tasks.lint] 
-sequence = ["lint-py", "lint-yml", "lint-css", "lint-njk"]
+sequence = ["lint-isort", "lint-py", "lint-yml", "lint-css", "lint-njk"]
 ignore_fail = true
 
 [tool.poe.tasks.serve] 

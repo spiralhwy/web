@@ -2,9 +2,8 @@
 module.exports = function(eleventyConfig) {
 
   // Existing passthrough copy configurations
-  eleventyConfig.addPassthroughCopy({ "src/_data/posters": "posters" });
-  eleventyConfig.addPassthroughCopy({ "src/_fonts": "fonts" });
-  eleventyConfig.addPassthroughCopy({ "src/css/styles.css": "styles.css" });
+  eleventyConfig.addPassthroughCopy({ "spiral_hwy/fonts": "fonts" });
+  eleventyConfig.addPassthroughCopy({ "spiral_hwy/css/styles.css": "styles.css" });
 
   // Existing date formatter
   eleventyConfig.addFilter("formatDate", function(dateString) {
@@ -67,7 +66,7 @@ module.exports = function(eleventyConfig) {
 
   return {
     dir: {
-      input: "src",
+      input: "spiral_hwy",
       output: "public",
     }
   };

@@ -124,7 +124,11 @@ def get_driver() -> WebDriver:
 
 class WebScraper:
 
-    def __init__(self):
+    def __init__(self, poster_dir: Path = Path(__file__).parent.parent.parent / "public/posters"):
+
+        self.poster_dir: Path = (
+            poster_dir if isinstance(poster_dir, Path) else Path(poster_dir)
+        )
         self.assets = {
             "area": "",
             "available": "",
@@ -227,23 +231,20 @@ class WebScraper:
             element, config.asset
         ).lower()
 
-
         file_name_string = base64.urlsafe_b64encode(poster_name.encode()).decode(
             "utf-8"
         )
         self.assets["poster"] = file_name_string
 
         poster_src = element.get_attribute("src")
-        save_path = (
-            Path(__file__).parent / "_data" / "posters" / f"{file_name_string}.png"
-        )
+        save_path = self.poster_dir / f"{file_name_string}.png"
         save_path.parent.mkdir(exist_ok=True, parents=True)
         save_path = str(save_path)
 
         if not Path(save_path).exists():
             if poster_src.startswith("file://"):
                 local_path = poster_src[7:]  # Strip off "file://"
-                with open(local_path, 'rb') as img_file:
+                with open(local_path, "rb") as img_file:
                     img_data = img_file.read()
             else:
                 img_data = requests.get(poster_src).content
@@ -315,10 +316,10 @@ class WebScraper:
             )
 
 
-@hydra.main(version_base=None, config_path="configs", config_name="main")
+@hydra.main(version_base=None, config_path="../configs", config_name="main")
 def main(config: DictConfig):
 
-    ws = WebScraper(local=True)
+    ws = WebScraper()
 
     layout: DictConfig = config.veezi.dates_list
     first_element = layout[0]
@@ -329,15 +330,15 @@ def main(config: DictConfig):
     try:
         driver = get_driver()
         for w in config.veezi.websites:
-            try:
+            # try:
                 print(f"---------- scrape {w.theater} ----------")
                 go_to_website(driver, w.showings, first_element)
                 ws.scrape(driver, layout, w)
-            except:
+            # except:
                 print(f"---------- scrape failed {w.theater} ----------")
                 driver = get_driver()
 
-        json_path = Path(__file__).parent / "_data/movies.json"
+        json_path = Path(__file__).parent.parent.parent / "public/movies.json"
         ws.save_json(json_path)
 
     finally:

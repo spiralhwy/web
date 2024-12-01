@@ -1,0 +1,114 @@
+---
+websites:
+
+  # - theater: roxie_theater
+  #   showings: "https://ticketing.uswest.veezi.com/sessions/?siteToken=4m48btf3yavn7xjk5yxk6nc40c"
+  #   link: "https://roxie.com/"
+  #   area: mission
+  #   map: "https://maps.app.goo.gl/jXTW7AGx4ZHC5VYHA"
+
+  - theater: 4_star_theater
+    showings: "https://ticketing.uswest.veezi.com/sessions/?siteToken=d2atbcege5knqsavntt91g1250"
+    link: "https://www.4-star-movies.com/"
+    area: richmond
+    map: "https://maps.app.goo.gl/Kpjn8gz3WxZavAcx8"
+
+  # - theater: vogue_theatre
+  #   showings: "https://ticketing.uswest.veezi.com/sessions/?siteToken=qkwymq4me4nthdzzgj9fe08j0r"
+  #   link: "https://www.voguemovies.com/"
+  #   area: presidio
+  #   map: "https://maps.app.goo.gl/YGgAszs1fqrprekv9"
+
+  # - theater: balboa_theatre
+  #   showings: "https://ticketing.uswest.veezi.com/sessions/?siteToken=52wkfzmjpwjjfpz3ye7tz8wscg"
+  #   link: "https://www.balboamovies.com/"
+  #   area: richmond
+  #   map: "https://maps.app.goo.gl/aNRmvpa8FdHfmksr7"
+
+  # - theater: presidio_theatre
+  #   showings: "https://ticketing.uswest.veezi.com/sessions/?siteToken=exw1fqegkb8zg17ea110x0czsm"
+  #   link: "https://www.lntsf.com/presidio-theatre"
+  #   area: marina
+  #   map: "https://maps.app.goo.gl/mT88V7hUFqrmHfKJ8"
+
+  # - theater: marina_theater
+  #   showings: "https://ticketing.uswest.veezi.com/sessions/hzckdcvtvtf1wbd6pdkzvx6fgc"
+  #   link: "https://www.lntsf.com/marina-theatre"
+  #   area: marina
+  #   map: "https://maps.app.goo.gl/4SowFiP5LWtwj12a9"
+
+
+dates_list:
+
+  - by: id
+    field: "byDateTab"
+    action: [click]
+
+  - by: class_name
+    field: "date"
+    child:
+
+      - by: css_selector
+        field: "h3.date-title.highlight-foreground"
+        optional: true
+        asset:
+          name: date
+          method: get_attribute
+          field: "innerHTML"
+          special:
+            method: convert_date
+            format: "%A %d, %B %Y"
+
+      - by: class_name
+        field: "film "
+        child_special: create_listing
+        child:
+
+          - by: css_selector
+            field: "h3.title"
+            asset:
+              name: title
+              method: get_attribute
+              field: "innerHTML"
+
+          - by: class_name
+            field: "censor"
+            asset:
+              name: rating
+              method: text_member
+
+          - by: class_name
+            field: poster
+            special: save_poster
+            asset:
+              name: poster
+              method: get_attribute
+              field: "alt"
+
+          - by: css_selector
+            field: ".session-times li"
+            child:
+
+              - by: class_name
+                field: "tickets-sold-out"
+                optional: true
+                asset:
+                  name: available
+                  method: text_member
+
+              - by: tag_name
+                field: "a"
+                asset:
+                  name: link
+                  method: get_attribute
+                  field: "href"
+
+              - by: tag_name
+                field: "time"
+                special: create_showing
+                asset:
+                  name: time
+                  method: text_member
+                  special:
+                    method: convert_time
+                    format: "%I:%M %p"
