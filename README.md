@@ -2,14 +2,13 @@
 
 Get to great art.
 
+
 ## Install / Usage
 
 Install node modules:
 ```
 npm install
 ```
-
-
 
 Build the project:
 ```

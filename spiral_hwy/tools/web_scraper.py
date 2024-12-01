@@ -324,21 +324,18 @@ def main(config: DictConfig):
     layout: DictConfig = config.veezi.dates_list
     first_element = layout[0]
 
-    # layout: DictConfig = config.fandango.dates_list
-    # first_element = layout[0]
-
     try:
         driver = get_driver()
         for w in config.veezi.websites:
-            # try:
+            try:
                 print(f"---------- scrape {w.theater} ----------")
                 go_to_website(driver, w.showings, first_element)
                 ws.scrape(driver, layout, w)
-            # except:
+            except:
                 print(f"---------- scrape failed {w.theater} ----------")
                 driver = get_driver()
 
-        json_path = Path(__file__).parent.parent.parent / "public/movies.json"
+        json_path = Path(__file__).parent.parent / "_data/movies.json"
         ws.save_json(json_path)
 
     finally:
