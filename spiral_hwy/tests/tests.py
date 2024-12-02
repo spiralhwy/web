@@ -28,6 +28,10 @@ def test_veezi():
     """
     Test scrape of Veezi format.
     """
+    # destroy old assets
+    if K_TMP_TEST_DIR.exists():
+        shutil.rmtree(K_TMP_TEST_DIR)
+
     # get config
     with initialize(version_base=None, config_path="../configs"):
         config = compose(config_name="main", overrides=["veezi=test"])
@@ -51,7 +55,7 @@ def test_veezi():
     ws.save_json(json_path)
 
     # check that JSONs are equivalent
-    ground_truth_dir = Path(__file__) / "ground_truth" / "veezi"
+    ground_truth_dir = Path(__file__).parent / "ground_truth" / "veezi"
     assert read_json(json_path) == read_json(ground_truth_dir / "movies.json")
 
     # Check posters are save correctly
@@ -59,5 +63,4 @@ def test_veezi():
     assert poster_files == read_json(ground_truth_dir / "posters.json")
 
     # destroy assets
-    json_path.unlink()
     shutil.rmtree(K_TMP_TEST_DIR)

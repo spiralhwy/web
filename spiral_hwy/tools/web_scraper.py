@@ -26,6 +26,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 
+ATTRIBUTE_ID = {
+    "id": By.ID,
+    "class_name": By.CLASS_NAME,
+    "css_selector": By.CSS_SELECTOR,
+    "tag_name": By.TAG_NAME,
+}
+
+
 @dataclass
 class MovieShowing:
     available: bool
@@ -59,44 +67,6 @@ def catch_optional(func):
     return wrapper
 
 
-ATTRIBUTE_ID = {
-    "id": By.ID,
-    "class_name": By.CLASS_NAME,
-    "css_selector": By.CSS_SELECTOR,
-    "tag_name": By.TAG_NAME,
-}
-
-
-def element_click(element: WebElement) -> None:
-    element.click()
-
-
-ELEMENT_ACTIONS = {"click": element_click}
-
-
-def get_element_attribute(element: WebElement, asset: DictConfig) -> str:
-    output = element.get_attribute(asset.field)
-    if isinstance(output, str):
-        return output.strip()
-    return output
-
-
-def get_element_text(item: WebElement, _asset: DictConfig) -> str:
-    return item.text.strip()
-
-
-def fandango_get_rating(element: WebElement, asset: DictConfig) -> str:
-    output = get_element_attribute(element, asset)
-    return output.split(",")[0]
-
-
-ASSET_GETTER = {
-    "get_attribute": get_element_attribute,
-    "text_member": get_element_text,
-    "fandango_get_rating": fandango_get_rating,
-}
-
-
 def go_to_website(driver, website, first_element):
     driver.get(website)
     timeout_sec = 60
@@ -123,8 +93,13 @@ def get_driver() -> WebDriver:
 
 
 class WebScraper:
+    """
+    Class to scrape movie showing info from website.
+    """
 
-    def __init__(self, poster_dir: Path = Path(__file__).parent.parent.parent / "public/posters"):
+    def __init__(
+        self, poster_dir: Path = Path(__file__).parent.parent.parent / "public/posters"
+    ):
 
         self.poster_dir: Path = (
             poster_dir if isinstance(poster_dir, Path) else Path(poster_dir)
@@ -145,42 +120,63 @@ class WebScraper:
         self.showings: List[MovieShowing]
         self.listings: Dict[str, List[MovieListing]] = dict()
 
-        self.SPECIAL = {
+        self.asset_getters = {
+            "get_attribute": self.get_element_attribute,
+            "text_member": self.get_element_text,
+        }
+
+        self.asset_special = {
             "convert_date": self.convert_date,
             "convert_time": self.convert_time,
+        }
+
+        self.actions = {
             "create_listing": self.create_listing,
             "create_showing": self.create_showing,
             "save_poster": self.save_poster,
+            "click": self.element_click,
+            "unpack": self.unpack,
+            "get_asset": self.get_asset,
         }
 
-    def convert_date(self, asset: DictConfig):
+    @staticmethod
+    def element_click(element: WebElement, _config: DictConfig) -> None:
+        """
+        Click element
+        """
+        element.click()
+
+    @staticmethod
+    def get_element_attribute(element: WebElement, asset: DictConfig) -> str:
+        output = element.get_attribute(asset.field)
+        if isinstance(output, str):
+            return output.strip()
+        return output
+
+    @staticmethod
+    def get_element_text(item: WebElement, _asset: DictConfig) -> str:
+        return item.text.strip()
+
+    def convert_date(self, date: str, config: DictConfig):
         # Get today's date
         today = datetime.now()
         yesterday = today - timedelta(days=1)
 
         # First try current year
         current_year = today.year
-        date_str_with_year = f'{self.assets["date"]} {current_year}'
+        date_str_with_year = f"{date} {current_year}"
 
-        try:
-            date_obj = datetime.strptime(date_str_with_year, asset.special.format)
+        date_obj = datetime.strptime(date_str_with_year, config.format)
 
-            # If the date is before yesterday, add a year
-            if date_obj < yesterday:
-                date_obj = datetime.strptime(
-                    f'{self.assets["date"]} {current_year + 1}', "%A %d, %B %Y"
-                )
+        # If the date is before yesterday, add a year
+        if date_obj < yesterday:
+            date_obj = datetime.strptime(f"{date} {current_year + 1}", "%A %d, %B %Y")
 
-            self.assets["date"] = date_obj.strftime("%Y%m%d")
-        except ValueError as e:
-            return f"Error parsing date: {e}"
+        return date_obj.strftime("%Y%m%d")
 
-    def convert_time(self, asset: DictConfig):
-        try:
-            date_obj = datetime.strptime(self.assets["time"], asset.special.format)
-            self.assets["time"] = date_obj.strftime("%H%M")
-        except ValueError as e:
-            return f"Error parsing time: {e}"
+    def convert_time(self, time: str, config: DictConfig):
+        date_obj = datetime.strptime(time, config.format)
+        return date_obj.strftime("%H%M")
 
     def create_listing(self, _element: WebElement, _config: DictConfig):
         if len(self.showings) == 0:
@@ -206,7 +202,7 @@ class WebScraper:
         self.showings.clear()
         self.assets["title"] = ""
 
-    def create_showing(self, element, config):
+    def create_showing(self, _element, _config):
         if not self.assets["link"] or not self.assets["time"]:
             return
 
@@ -226,18 +222,16 @@ class WebScraper:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(self.listings, f, indent=4, default=lambda o: o.__dict__)
 
-    def save_poster(self, element: WebElement, config):
-        poster_name: str = ASSET_GETTER[config.asset.method](
-            element, config.asset
-        ).lower()
+    def save_poster(self, element: WebElement, config: DictConfig):
 
-        file_name_string = base64.urlsafe_b64encode(poster_name.encode()).decode(
-            "utf-8"
-        )
-        self.assets["poster"] = file_name_string
+        self.get_asset(element, config)
+
+        self.assets[config.name] = base64.urlsafe_b64encode(
+            self.assets[config.name].lower().encode()
+        ).decode("utf-8")
 
         poster_src = element.get_attribute("src")
-        save_path = self.poster_dir / f"{file_name_string}.png"
+        save_path = self.poster_dir / f"{self.assets[config.name]}.png"
         save_path.parent.mkdir(exist_ok=True, parents=True)
         save_path = str(save_path)
 
@@ -262,6 +256,21 @@ class WebScraper:
         self.showings = list()
         self.unpack_list(root, config)
 
+    def unpack(self, element: WebElement, config: DictConfig):
+        self.unpack_list(element, config.children)
+
+    def get_asset(self, element: WebElement, config: DictConfig):
+        self.assets[config.name] = self.asset_getters[config.method](element, config)
+
+        if config.get("special"):
+            self.assets[config.name] = self.asset_special[config.special.method](
+                self.assets[config.name], config.special
+            )
+
+    def execute_actions(self, element: WebElement, config: DictConfig):
+        for c in config:
+            self.actions[c.action](element, c)
+
     @catch_optional
     def unpack_element(
         self, root: WebDriver | WebElement, attribute_id, config: DictConfig, **kwargs
@@ -269,41 +278,16 @@ class WebScraper:
         """
         Unpack single element.
         """
-        if config.get("child"):
-            elements = root.find_elements(attribute_id, config.field)
-            for e in elements:
-
-                self.unpack_list(e, config.child)
-
-                if config.get("child_special"):
-                    self.SPECIAL[config.child_special](e, config)
+        elements = []
+        if "multiple" in config.get("meta", []):
+            elements.extend(root.find_elements(attribute_id, config.field))
 
         else:
-            element = root.find_element(attribute_id, config.field)
-            if config.get("action"):
-                for a in config.action:
+            elements.append(root.find_element(attribute_id, config.field))
 
-                    ELEMENT_ACTIONS[a](element)
-
-                #                 if config.get("actions"):
-                # for a in config.actions:
-
-                #     if a.get("asset"):
-                #         a = a.asset
-                #         self.assets[a.name] = ASSET_GETTER[a.method](element, a)
-                #         if a.get("special"):
-                #             self.SPECIAL[a.special.method](a)
-                #     else:
-                #         ELEMENT_ACTIONS[a](element)
-
-            if config.get("asset"):
-                a = config.asset
-                self.assets[a.name] = ASSET_GETTER[a.method](element, a)
-                if a.get("special"):
-                    self.SPECIAL[a.special.method](a)
-
-            if config.get("special"):
-                self.SPECIAL[config.special](element, config)
+        if config.get("actions"):
+            for e in elements:
+                self.execute_actions(e, config.actions)
 
     @catch_optional
     def unpack_list(self, root: WebDriver | WebElement, config: DictConfig) -> None:
@@ -311,9 +295,8 @@ class WebScraper:
         Unpack config list.
         """
         for c in config:
-            self.unpack_element(
-                root, ATTRIBUTE_ID[c.by], c, optional=c.get("optional", False)
-            )
+            is_optional = "optional" in c.get("meta", [])
+            self.unpack_element(root, ATTRIBUTE_ID[c.by], c, optional=is_optional)
 
 
 @hydra.main(version_base=None, config_path="../configs", config_name="main")

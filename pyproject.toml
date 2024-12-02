@@ -24,26 +24,23 @@ poethepoet = "^0.31.0"
 
 [tool.poe.tasks.lint-isort]
 help = "Sort Python imports"
-shell = """isort $(find . -type f -name '*.py' -not -path '*/.*')"""
+shell = """isort $(find ./spiral_hwy -type f -name '*.py' -not -path '*/.*')"""
 
 [tool.poe.tasks.lint-py]
 help = "Lint PY"
-shell = """black $(find . -type f -name '*.py' -not -path '*/.*')"""
-
+shell = """black $(find ./spiral_hwy -type f -name '*.py' -not -path '*/.*')"""
 
 [tool.poe.tasks.lint-yml]
 help = "Lint YAML"
-shell = """yamllint -d '{extends: default, rules: {line-length: {max: 120}}}' $(find . -type f -name '*.yaml' -not -path '*/.*')"""
-
+shell = """yamllint -d '{extends: default, rules: {line-length: {max: 120}}}' $(find ./spiral_hwy -type f -name '*.yaml' -not -path '*/.*')"""
 
 [tool.poe.tasks.lint-njk]
 help = "Lint NJK."
-shell = """djlint ./src/*.njk --profile=nunjucks"""
-
+shell = """djlint ./spiral_hwy/*.njk --profile=nunjucks"""
 
 [tool.poe.tasks.lint-css]
 help = "Lint CSS"
-cmd = "npx stylelint 'src/**/*.css' --fix"
+cmd = "npx stylelint 'spiral_hwy/**/*.css' --fix"
 
 [tool.poe.tasks.lint] 
 sequence = ["lint-isort", "lint-py", "lint-yml", "lint-css", "lint-njk"]
