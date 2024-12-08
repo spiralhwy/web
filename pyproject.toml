@@ -17,6 +17,7 @@ webdriver-manager = "^4.0.2"
 djlint = "^1.36.1"
 pytest = "^8.3.4"
 isort = "^5.13.2"
+pytz = "^2024.2"
 
 [tool.poetry.group.dev.dependencies]
 poethepoet = "^0.31.0"

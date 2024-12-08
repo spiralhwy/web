@@ -12,8 +12,10 @@ from pathlib import Path
 from typing import Dict, List
 
 import hydra
+import pytz
 import requests
 from omegaconf import DictConfig
+from pytz import timezone
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
@@ -23,8 +25,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from .sort import quicksort
 from webdriver_manager.chrome import ChromeDriverManager
+
+from .sort import quicksort
 
 ATTRIBUTE_ID = {
     "id": By.ID,
@@ -182,20 +185,29 @@ class WebScraper:
         """
         Convert date text to a standardized format.
         """
-        # Get today's date
-        today = datetime.now()
+        # Define Pacific Time timezone
+        pacific_tz = pytz.timezone("US/Pacific")
+
+        # Get today's date in Pacific Time
+        today = datetime.now(pacific_tz)
         yesterday = today - timedelta(days=1)
 
         # First try current year
         current_year = today.year
         date_str_with_year = f"{date} {current_year}"
 
+        # Parse the date in the local timezone (Pacific Time)
         date_obj = datetime.strptime(date_str_with_year, config.format)
 
-        # If the date is before yesterday, add a year
+        # Localize the parsed date to Pacific Time
+        date_obj = pacific_tz.localize(date_obj)
+
+        # If the date is before yesterday in Pacific Time, add a year
         if date_obj < yesterday:
             date_obj = datetime.strptime(f"{date} {current_year + 1}", "%A %d, %B %Y")
+            date_obj = pacific_tz.localize(date_obj)
 
+        # Return the date in the standardized format (YYYY-MM-DD)
         return date_obj.strftime("%Y-%m-%d")
 
     def _convert_time(self, time: str, config: DictConfig) -> str:
