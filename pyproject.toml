@@ -25,7 +25,7 @@ poethepoet = "^0.31.0"
 
 [tool.poe.tasks.test-py]
 help = "Sort Python imports"
-shell = """pytest ./spiral_hwy/tests/*.py"""
+shell = """PYTHONPATH=./spiral_hwy/tools pytest ./spiral_hwy/tests/*.py"""
 
 [tool.poe.tasks.lint-py-isort]
 help = "Sort Python imports"
