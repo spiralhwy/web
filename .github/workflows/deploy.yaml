@@ -56,7 +56,7 @@ jobs:
 
       - name: Code sanitization
         run: |
-          if [[ "${{ github.event_name }}" == "push" ]];
+          if [[ "${{ github.event_name }}" == "push" ]]; then
             poetry poe lint-check
           else
             echo "Not a push event"
