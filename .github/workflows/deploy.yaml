@@ -53,13 +53,10 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
           poetry install --no-interaction
 
-      - name: Install Poe the Poet
-        run: pip install poethepoet
-
       - name: Code sanitization
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            poetry poe lint-check
+            poetry run poe lint-check
           else
             echo "Not a push event"
           fi
