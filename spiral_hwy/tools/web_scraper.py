@@ -177,7 +177,7 @@ class WebScraper:
         Get text only from web element.
         """
         return item.text.strip()
-
+ 
     def _convert_date(self, date: str, config: DictConfig) -> str:
         """
         Convert date text to a standardized format.

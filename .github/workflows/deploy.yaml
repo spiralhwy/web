@@ -57,7 +57,7 @@ jobs:
       - name: Code sanitization
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            poetry poe lint
+            poetry poe lint-check
           else
 
       - name: Run WebScraper
