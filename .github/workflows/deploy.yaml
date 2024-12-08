@@ -56,9 +56,11 @@ jobs:
 
       - name: Code sanitization
         run: |
-          if [[ "${{ github.event_name }}" == "push" ]]; then
+          if [[ "${{ github.event_name }}" == "push" ]];
             poetry poe lint-check
           else
+            echo "Not a push event"
+          fi
 
       - name: Run WebScraper
         run: poetry run ./spiral_hwy/tools/web_scraper.py

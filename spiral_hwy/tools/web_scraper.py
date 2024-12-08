@@ -177,7 +177,7 @@ class WebScraper:
         Get text only from web element.
         """
         return item.text.strip()
- 
+
     def _convert_date(self, date: str, config: DictConfig) -> str:
         """
         Convert date text to a standardized format.
@@ -248,7 +248,7 @@ class WebScraper:
         """
         Create showing object containing time and link to tickets.
         """
-        if not self.assets["link"] or not self.assets["time"]:
+        if not self.assets["time"]:
             raise RuntimeError("No link or time information for showing.")
 
         self.showings.append(
