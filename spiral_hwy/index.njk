@@ -16,32 +16,32 @@
         </br>
         </br>
         {% if movies %}
-            {% for date, moviesForDate in movies | groupBy("date") %}
+            {% for date, movie_dict in movies %}
                 <div class="sticky-wrapper">
                     <div class="date">{{ date | formatDate }}</div>
                 </div>
-                {% for movie in moviesForDate | groupByTitle %}
+                {% for md in movie_dict %}
                     <div class="movie-block">
-                        <h2 class="movie-title">{{ movie.title }}</h2>
+                        <h2 class="movie-title">{{ md.title }}</h2>
                         <div class="poster-container">
                             <img 
-                                src="posters/{{ movie.poster }}.png" 
-                                alt="Poster for {{ movie.title }}"
+                                src="posters/{{ md.poster }}.png" 
+                                alt="Poster for {{ md.title }}"
                                 width="120"
                                 height="180"
                             >
                         </div>
                         <div class="movie-info">
-                            {% for theater in movie.theaters %}
+                            {% for listing in md.listings %}
                                 <div class="theater-info">
-                                    <a href="{{ theater.theater_link }}" target="_blank" class="theater-name">
-                                        {{ theater.name | replace("_", " ") | title }}
+                                    <a href="{{ listing.theater_link }}" target="_blank" class="theater-name">
+                                        {{ listing.theater | replace("_", " ") | title }}
                                     </a> 
-                                    <a href="{{ theater.map }}" target="_blank" class="area-link" >
-                                        {{ theater.area | title }}
+                                    <a href="{{ listing.map }}" target="_blank" class="area-link" >
+                                        {{ listing.area | title }}
                                     </a>
                                     <span class="showtimes">
-                                        {% for showing in theater.showings %}
+                                        {% for showing in listing.showings %}
                                             <a href="{{ showing.link }}" 
                                             target="_blank" 
                                             class="time {% if showing.available == 'SOLD OUT' %}sold-out{% endif %}">
@@ -57,10 +57,7 @@
                     {% if not loop.last %}
                         <div class="divider"></div>
                     {% else %}
-                    </br>
-                    </br>
-                    </br>
-                    </br>
+                    {% for _ in range(4) %}</br>{% endfor %}  {# spacing #}
                     {% endif %}
                 {% endfor %}  {# movie #}
             {% endfor %}  {# date #}

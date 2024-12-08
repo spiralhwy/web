@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
+"""
+Web scraper to get data from movie listing website.
+"""
 
-import requests
-
+import base64
 import json
+import time
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List
 
-import time
-from datetime import datetime, timedelta
-import base64
-
-
 import hydra
+import requests
 from omegaconf import DictConfig
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
@@ -23,8 +23,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from sort import quicksort
 from webdriver_manager.chrome import ChromeDriverManager
-
 
 ATTRIBUTE_ID = {
     "id": By.ID,
@@ -36,6 +36,10 @@ ATTRIBUTE_ID = {
 
 @dataclass
 class MovieShowing:
+    """
+    Showing event.
+    """
+
     available: bool
     link: str
     time: str
@@ -43,20 +47,24 @@ class MovieShowing:
 
 @dataclass
 class MovieListing:
-    date: str
-    poster: str
-    rating: str
+    """
+    Daily movie listing: location, showings, etc.
+    """
+
     showings: List[MovieShowing]
     theater: str
-    title: str
     map: str
     area: str
     theater_link: str
 
 
 def catch_optional(func):
+    """
+    Allow web element to not exist if optional flag.
+    """
+
     def wrapper(*args, **kwargs):
-        if kwargs.get("optional"):
+        if "optional" in kwargs:
             try:
                 return func(*args, **kwargs)
             except NoSuchElementException:
@@ -67,7 +75,10 @@ def catch_optional(func):
     return wrapper
 
 
-def go_to_website(driver, website, first_element):
+def go_to_website(driver: WebDriver, website: str, first_element: DictConfig) -> None:
+    """
+    Go to website with Selenium web driver.
+    """
     driver.get(website)
     timeout_sec = 60
     WebDriverWait(driver, timeout_sec).until(
@@ -81,6 +92,9 @@ def go_to_website(driver, website, first_element):
 
 
 def get_driver() -> WebDriver:
+    """
+    Get Selenium web driver.
+    """
     chrome_options = Options()
     chrome_options.add_argument("--headless")  # Run in headless mode (no GUI)
     chrome_options.add_argument("--disable-notifications")  # Disable notifications
@@ -121,43 +135,53 @@ class WebScraper:
         self.listings: Dict[str, List[MovieListing]] = dict()
 
         self.asset_getters = {
-            "get_attribute": self.get_element_attribute,
-            "text_member": self.get_element_text,
+            "get_attribute": self._get_element_attribute,
+            "text_member": self._get_element_text,
         }
 
         self.asset_special = {
-            "convert_date": self.convert_date,
-            "convert_time": self.convert_time,
+            "convert_date": self._convert_date,
+            "convert_time": self._convert_time,
         }
 
         self.actions = {
-            "create_listing": self.create_listing,
-            "create_showing": self.create_showing,
-            "save_poster": self.save_poster,
-            "click": self.element_click,
-            "unpack": self.unpack,
-            "get_asset": self.get_asset,
+            "create_listing": self._create_listing,
+            "create_showing": self._create_showing,
+            "save_poster": self._save_poster,
+            "click": self._element_click,
+            "unpack": self._unpack,
+            "get_asset": self._get_asset,
         }
 
     @staticmethod
-    def element_click(element: WebElement, _config: DictConfig) -> None:
+    def _element_click(element: WebElement, _config: DictConfig) -> None:
         """
-        Click element
+        Click web element.
         """
         element.click()
 
     @staticmethod
-    def get_element_attribute(element: WebElement, asset: DictConfig) -> str:
+    def _get_element_attribute(element: WebElement, asset: DictConfig) -> str:
+        """
+        Get attribute of web element.
+        Strip off any whitespace.
+        """
         output = element.get_attribute(asset.field)
         if isinstance(output, str):
             return output.strip()
         return output
 
     @staticmethod
-    def get_element_text(item: WebElement, _asset: DictConfig) -> str:
+    def _get_element_text(item: WebElement, _asset: DictConfig) -> str:
+        """
+        Get text only from web element.
+        """
         return item.text.strip()
 
-    def convert_date(self, date: str, config: DictConfig):
+    def _convert_date(self, date: str, config: DictConfig) -> str:
+        """
+        Convert date text to a standardized format.
+        """
         # Get today's date
         today = datetime.now()
         yesterday = today - timedelta(days=1)
@@ -172,39 +196,60 @@ class WebScraper:
         if date_obj < yesterday:
             date_obj = datetime.strptime(f"{date} {current_year + 1}", "%A %d, %B %Y")
 
-        return date_obj.strftime("%Y%m%d")
+        return date_obj.strftime("%Y-%m-%d")
 
-    def convert_time(self, time: str, config: DictConfig):
+    def _convert_time(self, time: str, config: DictConfig) -> str:
+        """
+        Convert time to standardized format.
+        """
         date_obj = datetime.strptime(time, config.format)
         return date_obj.strftime("%H%M")
 
-    def create_listing(self, _element: WebElement, _config: DictConfig):
+    def _create_listing(self, _element: WebElement, _config: DictConfig) -> None:
+        """
+        Create movie listing. This includes location and showing times.
+        """
+        # there should be showings for each listing
         if len(self.showings) == 0:
-            return
+            raise RuntimeError("No showings for listing")
 
-        listings_of_date = self.listings.get(self.assets["date"], list())
-        listings_of_date.append(
+        # clean up title
+        self.assets["title"] = self.assets["title"].replace("&amp;", "&")
+
+        # initialize dictionaries
+        date_dict = self.listings.get(self.assets["date"], dict())
+        title_dict: dict = date_dict.get(self.assets["title"], dict())
+        if len(title_dict.keys()) == 0:
+            for k in ["poster", "rating"]:
+                title_dict.update({k: self.assets[k]})
+
+        # add listing object
+        listings_list = title_dict.get("listings", list())
+        listings_list.append(
             MovieListing(
-                self.assets["date"],
-                self.assets["poster"],
-                self.assets["rating"],
                 self.showings.copy(),
                 self.assets["theater"],
-                self.assets["title"].replace("&amp;", "&"),
                 self.assets["map"],
                 self.assets["area"],
                 self.assets["theater_link"],
             )
         )
-        self.listings.update({self.assets["date"]: listings_of_date})
+        title_dict.update({"listings": listings_list})
+        date_dict.update({self.assets["title"]: title_dict})
+        self.listings.update({self.assets["date"]: date_dict})
+
+        # reset assets
         self.assets["poster"] = ""
         self.assets["rating"] = ""
         self.showings.clear()
         self.assets["title"] = ""
 
-    def create_showing(self, _element, _config):
+    def _create_showing(self, _element: WebElement, _config: DictConfig) -> None:
+        """
+        Create showing object containing time and link to tickets.
+        """
         if not self.assets["link"] or not self.assets["time"]:
-            return
+            raise RuntimeError("No link or time information for showing.")
 
         self.showings.append(
             MovieShowing(
@@ -217,14 +262,29 @@ class WebScraper:
         self.assets["link"] = ""
         self.assets["time"] = ""
 
-    def save_json(self, path: Path):
-        path.parent.mkdir(exist_ok=True, parents=True)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(self.listings, f, indent=4, default=lambda o: o.__dict__)
+    def _execute_actions(self, element: WebElement, config: DictConfig) -> None:
+        """
+        Execute actions on a web element / its config item.
+        """
+        for c in config:
+            self.actions[c.action](element, c)
 
-    def save_poster(self, element: WebElement, config: DictConfig):
+    def _get_asset(self, element: WebElement, config: DictConfig) -> None:
+        """
+        Get asset from web element and store in class object.
+        """
+        self.assets[config.name] = self.asset_getters[config.method](element, config)
 
-        self.get_asset(element, config)
+        if "special" in config:
+            self.assets[config.name] = self.asset_special[config.special.method](
+                self.assets[config.name], config.special
+            )
+
+    def _save_poster(self, element: WebElement, config: DictConfig) -> None:
+        """
+        Save poster image.
+        """
+        self._get_asset(element, config)
 
         self.assets[config.name] = base64.urlsafe_b64encode(
             self.assets[config.name].lower().encode()
@@ -236,8 +296,9 @@ class WebScraper:
         save_path = str(save_path)
 
         if not Path(save_path).exists():
-            if poster_src.startswith("file://"):
-                local_path = poster_src[7:]  # Strip off "file://"
+            file_str = "file://"
+            if poster_src.startswith(file_str):
+                local_path = poster_src[len(file_str) :]  # Strip off "file://"
                 with open(local_path, "rb") as img_file:
                     img_data = img_file.read()
             else:
@@ -246,57 +307,97 @@ class WebScraper:
             with open(save_path, "wb") as handler:
                 handler.write(img_data)
 
-    def scrape(
-        self, root: WebDriver | WebElement, config: DictConfig, website: str
-    ) -> None:
-        self.assets["theater"] = website.theater
-        self.assets["map"] = website.map
-        self.assets["area"] = website.area
-        self.assets["theater_link"] = website.link
-        self.showings = list()
-        self.unpack_list(root, config)
+    def _sort_showings_by_times(self) -> None:
+        """
+        Sort listings and movies.
+        Listings for each movie are sorted first.
+        Then each movie is sorted for the day.
+        """
 
-    def unpack(self, element: WebElement, config: DictConfig):
-        self.unpack_list(element, config.children)
+        def get_showing_time(movie_listing: MovieListing):
+            """
+            Callback to extract first showing time.
+            """
+            return int(movie_listing.showings[0].time)
 
-    def get_asset(self, element: WebElement, config: DictConfig):
-        self.assets[config.name] = self.asset_getters[config.method](element, config)
+        def get_listing_time(movie_showing: dict):
+            """
+            Callback to extract first showing time from first listing.
+            """
+            return int(get_showing_time(movie_showing["listings"][0]))
 
-        if config.get("special"):
-            self.assets[config.name] = self.asset_special[config.special.method](
-                self.assets[config.name], config.special
-            )
+        # sort showings
+        for date, movies in self.listings.items():
+            for movie_data in movies.values():
+                quicksort(
+                    movie_data["listings"],
+                    0,
+                    len(movie_data["listings"]) - 1,
+                    get_showing_time,
+                )
 
-    def execute_actions(self, element: WebElement, config: DictConfig):
-        for c in config:
-            self.actions[c.action](element, c)
+        # sort movies
+        for date, movies in self.listings.items():
+            movie_list = []
+            for title, movie_data in movies.items():
+                movie_data.update({"title": title})
+                movie_list.append(movie_data)
+            quicksort(movie_list, 0, len(movie_list) - 1, get_listing_time)
+            self.listings.update({date: movie_list})
+
+    def _unpack(self, element: WebElement, config: DictConfig) -> None:
+        """
+        Small wrapper function for a config element that wants to get its child elements.
+        """
+        self._unpack_list(element, config.children)
 
     @catch_optional
-    def unpack_element(
+    def _unpack_element(
         self, root: WebDriver | WebElement, attribute_id, config: DictConfig, **kwargs
     ) -> None:
         """
-        Unpack single element.
+        Unpack element type. There may be multiple elements of that type to get from the page.
         """
         elements = []
         if "multiple" in config.get("meta", []):
             elements.extend(root.find_elements(attribute_id, config.field))
-
         else:
             elements.append(root.find_element(attribute_id, config.field))
 
-        if config.get("actions"):
+        if "actions" in config:
             for e in elements:
-                self.execute_actions(e, config.actions)
+                self._execute_actions(e, config.actions)
 
     @catch_optional
-    def unpack_list(self, root: WebDriver | WebElement, config: DictConfig) -> None:
+    def _unpack_list(self, root: WebDriver | WebElement, config: DictConfig) -> None:
         """
         Unpack config list.
         """
         for c in config:
             is_optional = "optional" in c.get("meta", [])
-            self.unpack_element(root, ATTRIBUTE_ID[c.by], c, optional=is_optional)
+            self._unpack_element(root, ATTRIBUTE_ID[c.by], c, optional=is_optional)
+
+    def save_json(self, path: Path) -> None:
+        """
+        Save JSON file.
+        """
+        self._sort_showings_by_times()
+        path.parent.mkdir(exist_ok=True, parents=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(self.listings, f, indent=4, default=lambda o: o.__dict__)
+
+    def scrape(
+        self, root: WebDriver | WebElement, config: DictConfig, website: str
+    ) -> None:
+        """
+        Primary function to call to scrape website.
+        """
+        self.assets["theater"] = website.theater
+        self.assets["map"] = website.map
+        self.assets["area"] = website.area
+        self.assets["theater_link"] = website.link
+        self.showings = list()
+        self._unpack_list(root, config)
 
 
 @hydra.main(version_base=None, config_path="../configs", config_name="main")
@@ -311,15 +412,15 @@ def main(config: DictConfig):
         driver = get_driver()
         for w in config.veezi.websites:
             try:
-                print(f"---------- scrape {w.theater} ----------")
+                print("-" * 10, f"scrape {w.theater}", "-" * 10)
                 go_to_website(driver, w.showings, first_element)
                 ws.scrape(driver, layout, w)
             except:
-                print(f"---------- scrape failed {w.theater} ----------")
+                print("-" * 10, f"scrape failed {w.theater}", "-" * 10)
                 driver = get_driver()
 
-        json_path = Path(__file__).parent.parent / "_data/movies.json"
-        ws.save_json(json_path)
+        json_path = Path(__file__).parent.parent / "_data" / "movies.json"
+        ws.save_json(json_path)  # sorts data as well
 
     finally:
         driver.quit()

@@ -22,32 +22,39 @@ isort = "^5.13.2"
 poethepoet = "^0.31.0"
 
 
-[tool.poe.tasks.lint-isort]
+[tool.poe.tasks.lint-py-isort]
 help = "Sort Python imports"
 shell = """isort $(find ./spiral_hwy -type f -name '*.py' -not -path '*/.*')"""
 
-[tool.poe.tasks.lint-py]
-help = "Lint PY"
+[tool.poe.tasks.lint-py-black]
+help = "Lint Python formatting"
 shell = """black $(find ./spiral_hwy -type f -name '*.py' -not -path '*/.*')"""
+
+[tool.poe.tasks.lint-py-black-check]
+help = "Lint Python formatting"
+shell = """black $(find ./spiral_hwy -type f -name '*.py' -not -path '*/.*') --check"""
 
 [tool.poe.tasks.lint-yml]
 help = "Lint YAML"
 shell = """yamllint -d '{extends: default, rules: {line-length: {max: 120}}}' $(find ./spiral_hwy -type f -name '*.yaml' -not -path '*/.*')"""
 
 [tool.poe.tasks.lint-njk]
-help = "Lint NJK."
+help = "Lint NunJucks"
 shell = """djlint ./spiral_hwy/*.njk --profile=nunjucks"""
 
 [tool.poe.tasks.lint-css]
 help = "Lint CSS"
-cmd = "npx stylelint 'spiral_hwy/**/*.css' --fix"
+cmd = "npx stylelint 'spiral_hwy/css/*.css' --fix"
 
 [tool.poe.tasks.lint] 
-sequence = ["lint-isort", "lint-py", "lint-yml", "lint-css", "lint-njk"]
+sequence = ["lint-py-isort", "lint-py-black", "lint-yml", "lint-css", "lint-njk"]
+
+[tool.poe.tasks.lint-check] 
+sequence = [ "lint-py-black-check", "lint-yml", "lint-css", "lint-njk"]
 ignore_fail = true
 
-[tool.poe.tasks.serve] 
-cmd = "npm start"  # TODO: make this a proper eleventy cmd
+[tool.poe.tasks.serve]
+cmd = "npx eleventy --serve"
 
 
 [build-system]

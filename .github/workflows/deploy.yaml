@@ -54,6 +54,12 @@ jobs:
       - name: Start Poetry
         run: poetry install --no-interaction
 
+      - name: Code sanitization
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            poetry poe lint
+          else
+
       - name: Run WebScraper
         run: poetry run ./spiral_hwy/tools/web_scraper.py
 
