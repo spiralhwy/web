@@ -45,9 +45,6 @@ CSS linter: [StyleLint](https://stylelint.io/user-guide/get-started)
 
 Movie posters are saved directly to `public/`. The listings information is saved to `spiral_hwy/_data/` to satisfy Eleventy templating file structure.
 
-## Bugs
-
-Not showing listings at all for sold out times
 
 ## Testing
 
