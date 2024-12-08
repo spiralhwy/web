@@ -27,7 +27,12 @@ poetry install
 
 Run scraper locally:
 ```
-poetry run ./spiral_hwy/tools/web_scraper.py 
+poetry run ./spiral_hwy/tools/web_scraper.py
+```
+
+Serve Eleventy website:
+```
+poetry poe serve
 ```
 
 
