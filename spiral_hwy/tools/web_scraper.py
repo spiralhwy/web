@@ -23,7 +23,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from sort import quicksort
+from .sort import quicksort
 from webdriver_manager.chrome import ChromeDriverManager
 
 ATTRIBUTE_ID = {

@@ -22,6 +22,10 @@ isort = "^5.13.2"
 poethepoet = "^0.31.0"
 
 
+[tool.poe.tasks.test-py]
+help = "Sort Python imports"
+shell = """pytest ./spiral_hwy/tests/*.py"""
+
 [tool.poe.tasks.lint-py-isort]
 help = "Sort Python imports"
 shell = """isort $(find ./spiral_hwy -type f -name '*.py' -not -path '*/.*')"""
