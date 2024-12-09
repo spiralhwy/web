@@ -3,20 +3,20 @@
 Get to great art.
 
 
-## Install / Usage
+## Installations
 
-1. [Install Node](https://nodejs.org/en/download/package-manager)
-1. [Install Poetry](https://python-poetry.org/docs/#installation)
-1. [Install Chrome](https://www.google.com/intl/en_au/chrome/dr/download/?brand=OZZY&ds_kid=43700080456228409&gad_source=1&gclsrc=ds)
+1. [Node](https://nodejs.org/en/download/package-manager)
+1. [Poetry](https://python-poetry.org/docs/#installation)
+1. [Chrome](https://www.google.com/intl/en_au/chrome/dr/download/?brand=OZZY&ds_kid=43700080456228409&gad_source=1&gclsrc=ds)
+1. Node modules: `npm install`
+1. Poetry project: `poetry install`
 
-Install node modules:
-```
-npm install
-```
 
-Install Poetry:
+## Usage
+
+Run scraper locally:
 ```
-poetry install
+poetry run ./spiral_hwy/tools/web_scraper.py
 ```
 
 Build the project:
@@ -29,21 +29,10 @@ Host locally:
 npx eleventy --serve
 ```
 
-
-Run scraper locally:
-```
-poetry run ./spiral_hwy/tools/web_scraper.py
-```
-
-Serve Eleventy website:
+Serve Eleventy website (same as above):
 ```
 poetry poe serve
 ```
-
-
-Install [Poetry](https://python-poetry.org/docs/#installation)
-Install [PoeThePoet](https://pipx.pypa.io/stable/)
-CSS linter: [StyleLint](https://stylelint.io/user-guide/get-started)
 
 
 ## Data Collection
