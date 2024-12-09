@@ -16,23 +16,23 @@
         </br>
         </br>
         {% if movies %}
-            {% for date, movie_dict in movies %}
+            {% for m in movies %}
                 <div class="sticky-wrapper">
-                    <div class="date">{{ date | formatDate }}</div>
+                    <div class="date">{{ m.date | formatDate }}</div>
                 </div>
-                {% for md in movie_dict %}
+                {% for movie_data in m.movies %}
                     <div class="movie-block">
-                        <h2 class="movie-title">{{ md.title }}</h2>
+                        <h2 class="movie-title">{{ movie_data.title }}</h2>
                         <div class="poster-container">
                             <img 
-                                src="posters/{{ md.poster }}.png" 
-                                alt="Poster for {{ md.title }}"
+                                src="posters/{{ movie_data.poster }}.png" 
+                                alt="Poster for {{ movie_data.title }}"
                                 width="120"
                                 height="180"
                             >
                         </div>
                         <div class="movie-info">
-                            {% for listing in md.listings %}
+                            {% for listing in movie_data.listings %}
                                 <div class="theater-info">
                                     <a href="{{ listing.theater_link }}" target="_blank" class="theater-name">
                                         {{ listing.theater | replace("_", " ") | title }}

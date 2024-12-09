@@ -325,17 +325,23 @@ class WebScraper:
         Then each movie is sorted for the day.
         """
 
-        def get_showing_time(movie_listing: MovieListing):
+        def get_showing_time(movie_listing: MovieListing) -> int:
             """
             Callback to extract first showing time.
             """
             return int(movie_listing.showings[0].time)
 
-        def get_listing_time(movie_showing: dict):
+        def get_listing_time(movie_showing: dict) -> int:
             """
             Callback to extract first showing time from first listing.
             """
             return int(get_showing_time(movie_showing["listings"][0]))
+
+        def get_date(day_dict: dict) -> int:
+            """
+            Callback to extract date.
+            """
+            return int("".join(day_dict["date"].split("-")))
 
         # sort showings
         for date, movies in self.listings.items():
@@ -355,6 +361,16 @@ class WebScraper:
                 movie_list.append(movie_data)
             quicksort(movie_list, 0, len(movie_list) - 1, get_listing_time)
             self.listings.update({date: movie_list})
+
+        # sort dates
+        date_list = []
+        for date, movies in self.listings.items():
+            d = {}
+            d.update({"date": date})
+            d.update({"movies": movies})
+            date_list.append(d)
+        quicksort(date_list, 0, len(date_list) - 1, get_date)
+        self.listings = date_list
 
     def _unpack(self, element: WebElement, config: DictConfig) -> None:
         """

@@ -5,9 +5,18 @@ Get to great art.
 
 ## Install / Usage
 
+1. [Install Node](https://nodejs.org/en/download/package-manager)
+1. [Install Poetry](https://python-poetry.org/docs/#installation)
+1. [Install Chrome](https://www.google.com/intl/en_au/chrome/dr/download/?brand=OZZY&ds_kid=43700080456228409&gad_source=1&gclsrc=ds)
+
 Install node modules:
 ```
 npm install
+```
+
+Install Poetry:
+```
+poetry install
 ```
 
 Build the project:
@@ -20,10 +29,6 @@ Host locally:
 npx eleventy --serve
 ```
 
-Install Poetry:
-```
-poetry install
-```
 
 Run scraper locally:
 ```
