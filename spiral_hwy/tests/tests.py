@@ -5,9 +5,9 @@ Unit tests to ensure that web scraper is properly configured.
 import json
 import os
 import shutil
+from datetime import datetime
 from pathlib import Path
 
-import pytest
 from hydra import compose, initialize
 from omegaconf import DictConfig
 
@@ -39,7 +39,9 @@ def test_veezi():
     poster_dir = K_TMP_TEST_DIR / "posters"
 
     # scrape websites
-    ws = WebScraper(poster_dir=poster_dir)
+    ws = WebScraper(
+        today=datetime(year=2024, month=12, day=9), year=2024, poster_dir=poster_dir
+    )
     layout: DictConfig = config.veezi.dates_list
     first_element = layout[0]
     driver = get_driver()

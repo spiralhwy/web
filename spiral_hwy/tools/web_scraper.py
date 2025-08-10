@@ -114,9 +114,13 @@ class WebScraper:
     """
 
     def __init__(
-        self, poster_dir: Path = Path(__file__).parent.parent.parent / "public/posters"
+        self,
+        today: datetime | None = None,
+        year: int | None = None,
+        poster_dir: Path = Path(__file__).parent.parent.parent / "public/posters",
     ):
-
+        self.today = today
+        self.year = year
         self.poster_dir: Path = (
             poster_dir if isinstance(poster_dir, Path) else Path(poster_dir)
         )
@@ -188,11 +192,16 @@ class WebScraper:
         pacific_tz = pytz.timezone("US/Pacific")
 
         # Get today's date in Pacific Time
-        today = datetime.now(pacific_tz)
+        today = (
+            datetime.now(pacific_tz)
+            if self.today is None
+            else pacific_tz.localize(self.today)
+        )
+
         yesterday = today - timedelta(days=1)
 
         # First try current year
-        current_year = today.year
+        current_year = today.year if self.year is None else self.year
         date_str_with_year = f"{date} {current_year}"
 
         # Parse the date in the local timezone (Pacific Time)
@@ -442,9 +451,10 @@ def main(config: DictConfig):
                 print("-" * 10, f"scrape {w.theater}", "-" * 10)
                 go_to_website(driver, w.showings, first_element)
                 ws.scrape(driver, layout, w)
-            except Exception as e:
+            # except Exception as e:
+            except Exception:
                 print("-" * 10, f"scrape failed {w.theater}", "-" * 10)
-                print(f"Exception:\n{e}")
+                # print(f"Exception:\n{e}")
                 driver = get_driver()
 
         json_path = Path(__file__).parent.parent / "_data" / "movies.json"
