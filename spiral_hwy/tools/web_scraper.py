@@ -442,8 +442,9 @@ def main(config: DictConfig):
                 print("-" * 10, f"scrape {w.theater}", "-" * 10)
                 go_to_website(driver, w.showings, first_element)
                 ws.scrape(driver, layout, w)
-            except:
+            except Exception as e:
                 print("-" * 10, f"scrape failed {w.theater}", "-" * 10)
+                print(f"Exception:\n{e}")
                 driver = get_driver()
 
         json_path = Path(__file__).parent.parent / "_data" / "movies.json"
