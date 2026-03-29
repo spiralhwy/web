@@ -5,6 +5,7 @@ Web scraper to get data from movie listing website.
 
 import base64
 import json
+import re
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -233,8 +234,15 @@ class WebScraper:
         if len(self.showings) == 0:
             raise RuntimeError("No showings for listing")
 
-        # clean up title
-        self.assets["title"] = self.assets["title"].replace("&amp;", "&")
+        # clean up title — innerHTML may contain tags like <i class="icon-3d">
+        title = self.assets["title"]
+        is_3d = "icon-3d" in title
+        title = re.sub(r"<[^>]+>", " ", title)  # strip HTML tags
+        title = re.sub(r"\s+", " ", title).strip()  # normalize whitespace
+        title = title.replace("&amp;", "&")
+        if is_3d:
+            title += " [3D]"
+        self.assets["title"] = title
 
         # initialize dictionaries
         date_dict = self.listings.get(self.assets["date"], dict())
