@@ -438,8 +438,9 @@ class WebScraper:
 
 @hydra.main(version_base=None, config_path="../configs", config_name="main")
 def main(config: DictConfig):
+    from alamo_scraper import AlamoScraper
 
-    ws = WebScraper()
+    ws = AlamoScraper()
 
     layout: DictConfig = config.veezi.dates_list
     first_element = layout[0]
@@ -452,10 +453,17 @@ def main(config: DictConfig):
                 go_to_website(driver, w.showings, first_element)
                 ws.scrape(driver, layout, w)
             # except Exception as e:
-            except Exception:
+            except Exception as e:
                 print("-" * 10, f"scrape failed {w.theater}", "-" * 10)
-                # print(f"Exception:\n{e}")
+                print(f"Exception:\n{e}")
                 driver = get_driver()
+
+        print("-" * 10, "scrape alamo_drafthouse_sf", "-" * 10)
+        try:
+            ws.scrape_alamo_sf(driver)
+        except Exception as e:
+            print("-" * 10, "scrape failed alamo_drafthouse_sf", "-" * 10)
+            print(f"Exception:\n{e}")
 
         json_path = Path(__file__).parent.parent / "_data" / "movies.json"
         ws.save_json(json_path)  # sorts data as well

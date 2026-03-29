@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head><title>Alamo SF Show Page Test Fixture</title></head>
+<body>
+
+<!-- Show title (custom element used by Alamo's Angular app) -->
+<show-title>Project Hail Mary</show-title>
+
+<!-- Show details with rating -->
+<div class="adc-show-time-section__show-details">
+    Rated PG-13 &bull; 156 min &bull; 2026
+</div>
+
+<!-- Poster image -->
+<img src="https://img-assets.drafthouse.com/images/shows/project-hail-mary/poster.jpg"
+     alt="Project Hail Mary">
+
+<!-- Location slider (no dates — _get_date_buttons should skip this) -->
+<div class="adc-show-time-slider">
+    <div class="adc-slider-item">Mountain View</div>
+    <div class="adc-slider-item adc-slider-item--active">San Francisco</div>
+</div>
+
+<!-- Date slider — uses responsive child divs that concatenate in textContent -->
+<div class="adc-show-time-slider">
+    <div class="adc-slider-item adc-slider-item--active">
+        <div class="ion-hide-md-down">Friday</div>
+        <div class="ion-hide-md-up">Fri 3/28</div>
+        <div class="ion-hide-md-down">3/28</div>
+    </div>
+    <div class="adc-slider-item">
+        <div class="ion-hide-md-down">Saturday</div>
+        <div class="ion-hide-md-up">Sat 3/29</div>
+        <div class="ion-hide-md-down">3/29</div>
+    </div>
+    <div class="adc-slider-item">
+        <div class="ion-hide-md-down">Wednesday</div>
+        <div class="ion-hide-md-up">Wed 4/1</div>
+        <div class="ion-hide-md-down">4/1</div>
+    </div>
+    <div class="adc-slider-item">
+        <div class="ion-hide-md-down">Thursday</div>
+        <div class="ion-hide-md-up">Thu 4/10</div>
+        <div class="ion-hide-md-down">4/10</div>
+    </div>
+    <div class="adc-slider-item">
+        <div class="ion-hide-md-down">Monday</div>
+        <div class="ion-hide-md-up">Mon 12/5</div>
+        <div class="ion-hide-md-down">12/5</div>
+    </div>
+</div>
+
+<!-- Showtime slider with regular, sold-out, and disabled slots -->
+<div class="adc-show-time-slider">
+    <div class="adc-show-time-slider__items--wrapped">
+        <div class="adc-slider-item">9:30pm</div>
+        <div class="adc-slider-item adc-slider-item--strike-through">12:00pm</div>
+        <div class="adc-slider-item adc-slider-item--disabled">3:00pm</div>
+        <div class="adc-slider-item">7:00pm</div>
+    </div>
+</div>
+
+</body>
+</html>
