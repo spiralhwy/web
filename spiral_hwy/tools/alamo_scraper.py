@@ -22,7 +22,6 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
 from web_scraper import MovieListing, MovieShowing, WebScraper
 
 ALAMO_SF_URL = "https://drafthouse.com/sf"
@@ -83,7 +82,8 @@ class AlamoScraper(WebScraper):
 
         # Collect all WHEN date buttons (contain m/d pattern)
         date_buttons = [
-            item for item in driver.find_elements(By.CLASS_NAME, "show-me-slider-item")
+            item
+            for item in driver.find_elements(By.CLASS_NAME, "show-me-slider-item")
             if re.search(r"\d+/\d+", item.get_attribute("textContent") or "")
         ]
         print(f"  Alamo SF: scanning {len(date_buttons)} dates...")
@@ -136,7 +136,9 @@ class AlamoScraper(WebScraper):
             driver.get(show_url)
             try:
                 WebDriverWait(driver, 20).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "adc-show-time-slider"))
+                    EC.presence_of_element_located(
+                        (By.CLASS_NAME, "adc-show-time-slider")
+                    )
                 )
             except TimeoutException:
                 return
@@ -150,7 +152,11 @@ class AlamoScraper(WebScraper):
         time.sleep(0.5)
 
         pacific_tz = pytz.timezone("US/Pacific")
-        today = datetime.now(pacific_tz) if self.today is None else pacific_tz.localize(self.today)
+        today = (
+            datetime.now(pacific_tz)
+            if self.today is None
+            else pacific_tz.localize(self.today)
+        )
 
         # Determine how many date tabs exist once, then re-fetch buttons each
         # iteration to avoid stale element references after Angular re-renders.
@@ -180,7 +186,9 @@ class AlamoScraper(WebScraper):
                 time_24 = self._parse_12h_time(t)
                 if time_24:
                     available = "SOLD OUT" if sold_out else ""
-                    showings.append(MovieShowing(available=available, link=show_url, time=time_24))
+                    showings.append(
+                        MovieShowing(available=available, link=show_url, time=time_24)
+                    )
 
             if not showings:
                 continue
@@ -241,7 +249,9 @@ class AlamoScraper(WebScraper):
         except NoSuchElementException:
             pass
         try:
-            h1 = driver.find_element(By.CSS_SELECTOR, ".adc-show-time-section__show-title")
+            h1 = driver.find_element(
+                By.CSS_SELECTOR, ".adc-show-time-section__show-title"
+            )
             return (h1.get_attribute("textContent") or "").strip()
         except NoSuchElementException:
             return ""
@@ -270,7 +280,10 @@ class AlamoScraper(WebScraper):
                 for item in items:
                     classes = item.get_attribute("class") or ""
                     tc = item.get_attribute("textContent") or ""
-                    if "San Francisco" in tc and "adc-slider-item--active" not in classes:
+                    if (
+                        "San Francisco" in tc
+                        and "adc-slider-item--active" not in classes
+                    ):
                         driver.execute_script("arguments[0].click();", item)
                         return
         except Exception:

@@ -15,7 +15,6 @@ from pathlib import Path
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
 from web_scraper import get_driver
 
 URL = "https://drafthouse.com/sf"
