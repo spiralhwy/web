@@ -8,9 +8,12 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
+import pytz
 from hydra import compose, initialize
 from omegaconf import DictConfig
+from selenium.webdriver.common.by import By
 
+from spiral_hwy.tools.alamo_scraper import AlamoScraper
 from spiral_hwy.tools.web_scraper import (
     MovieShowing,
     WebScraper,
@@ -118,3 +121,118 @@ def test_3d_title():
 
     # Title with other HTML tags — stripped but no 3D suffix
     assert make_listing("Title <b>Bold</b>") == "Title Bold"
+
+
+def test_alamo():
+    """
+    Test Alamo Drafthouse SF scraper: date parsing, time parsing,
+    date button extraction (innerHTML), showtime/sold-out detection,
+    and slug extraction from show cards.
+    """
+    pacific_tz = pytz.timezone("US/Pacific")
+    today = pacific_tz.localize(datetime(2026, 3, 28))
+
+    # ------------------------------------------------------------------
+    # _parse_alamo_date — clean "m/d" strings from innerHTML
+    # ------------------------------------------------------------------
+    parse = AlamoScraper._parse_alamo_date
+
+    # Standard dates
+    assert parse("3/28", today) == "2026-03-28"
+    assert parse("3/29", today) == "2026-03-29"
+    assert parse("4/10", today) == "2026-04-10"
+    assert parse("12/25", today) == "2026-12-25"
+
+    # Single-digit days (the original bug — "4/1" was lost when textContent
+    # concatenated "Wed 4/1" + "4/1" into "4/14/1", parsed as month 14)
+    assert parse("4/1", today) == "2026-04-01"
+    assert parse("3/1", today) == "2027-03-01"  # past → rolls to next year
+    assert parse("4/9", today) == "2026-04-09"
+
+    # Yesterday is still valid (within 1-day tolerance)
+    assert parse("3/27", today) == "2026-03-27"
+
+    # Two days ago rolls to next year
+    assert parse("3/26", today) == "2027-03-26"
+
+    # Year rollover — January is in the past relative to March
+    assert parse("1/15", today) == "2027-01-15"
+
+    # Invalid inputs
+    assert parse("", today) is None
+    assert parse("Wednesday", today) is None
+    assert parse("13/1", today) is None  # invalid month
+    assert parse("2/30", today) is None  # invalid day
+
+    # ------------------------------------------------------------------
+    # _parse_12h_time
+    # ------------------------------------------------------------------
+    parse_t = AlamoScraper._parse_12h_time
+
+    assert parse_t("9:30pm") == "2130"
+    assert parse_t("9:30am") == "0930"
+    assert parse_t("12:00pm") == "1200"
+    assert parse_t("12:00am") == "0000"
+    assert parse_t("1:15am") == "0115"
+    assert parse_t("11:45pm") == "2345"
+    assert parse_t("invalid") is None
+
+    # ------------------------------------------------------------------
+    # Selenium fixture tests
+    # ------------------------------------------------------------------
+    driver = get_driver()
+    try:
+        fixtures = Path(__file__).parent / "websites" / "alamo_sf"
+
+        # --- Show page fixture ---
+        driver.get("file:///" + str(fixtures / "show_page.html"))
+
+        # _get_date_buttons: should extract clean dates from innerHTML,
+        # not the concatenated textContent that caused the April 1st bug.
+        date_buttons = AlamoScraper._get_date_buttons(driver)
+        date_strs = [d for d, _btn in date_buttons]
+        assert date_strs == ["3/28", "3/29", "4/1", "4/10", "12/5"]
+
+        # Verify the parsed dates are all valid
+        parsed_dates = [parse(d, today) for d in date_strs]
+        assert parsed_dates == [
+            "2026-03-28",
+            "2026-03-29",
+            "2026-04-01",
+            "2026-04-10",
+            "2026-12-05",
+        ]
+
+        # _get_showtimes: should include sold-out, exclude disabled
+        showtimes = AlamoScraper._get_showtimes(driver)
+        assert showtimes == [
+            ("9:30pm", False),  # regular
+            ("12:00pm", True),  # sold out (strike-through)
+            ("7:00pm", False),  # regular
+        ]
+
+        # _get_show_title
+        title = AlamoScraper._get_show_title(driver)
+        assert title == "Project Hail Mary"
+
+        # _get_rating
+        rating = AlamoScraper._get_rating(driver)
+        assert rating == "PG-13"
+
+        # _select_sf_location: SF is already active, should be a no-op
+        AlamoScraper._select_sf_location(driver)  # should not raise
+
+        # --- Landing page fixture ---
+        driver.get("file:///" + str(fixtures / "landing_page.html"))
+
+        cards = driver.find_elements(By.CLASS_NAME, "adc-show-card")
+        slugs = [AlamoScraper._card_slug(c) for c in cards]
+        assert slugs == [
+            "project-hail-mary",
+            "twin-peaks-marathon",
+            "undertone",
+            "",  # unrelated image, no slug
+        ]
+
+    finally:
+        driver.quit()
