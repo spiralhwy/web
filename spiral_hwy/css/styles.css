@@ -114,6 +114,7 @@ a.area-link:hover {
     font-size: 0.9em;
     text-align: center;
     word-break: break-word;
+    margin-top: 0;
 }
 
 .site-title {
@@ -121,6 +122,86 @@ a.area-link:hover {
     font-size: 4em;
     text-align: center;
     word-break: break-word;
+    margin-bottom: 0.33em;
+}
+
+/* Calendar */
+
+#calendar {
+    max-width: 270px;
+    margin: 60px auto 0;
+}
+
+.cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.cal-month-label {
+    font-family: nyght, "ibm_mono", monospace;
+    font-size: 1.1em;
+    letter-spacing: 1px;
+}
+
+.cal-nav {
+    background: none;
+    border: none;
+    color: #fff;
+    font-family: "ibm_mono", monospace;
+    font-size: 1em;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.cal-nav:hover {
+    color: #f00;
+}
+
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+}
+
+.cal-dow {
+    font-family: "ibm_mono", monospace;
+    font-size: 0.75em;
+    color: #707070;
+    padding-bottom: 6px;
+}
+
+#cal-days {
+    grid-template-rows: repeat(6, 1fr);
+}
+
+.cal-day {
+    font-family: "ibm_mono", monospace;
+    font-size: 0.85em;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cal-day-inactive {
+    color: #707070;
+}
+
+.cal-day-active {
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.cal-day-active:hover {
+    color: #f00;
+}
+
+.cal-day-today {
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .sticky-wrapper {
