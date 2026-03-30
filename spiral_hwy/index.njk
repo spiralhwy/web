@@ -9,7 +9,7 @@
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <header>
+        <header id="top">
             <h1 class="site-title">Spiral HWY</h1>
             <h2 class="site-subtitle">San Francisco Cinema</h2>
         </header>
@@ -19,6 +19,7 @@
             {% for m in movies %}
                 <div class="sticky-wrapper">
                     <div class="date">{{ m.date | formatDate }}</div>
+                    <a href="#" class="top-btn" aria-label="Back to top">↑</a>
                 </div>
                 {% for movie_data in m.movies %}
                     <div class="movie-block">
@@ -64,5 +65,28 @@
         {% else %}
             <p>No movie data available</p>
         {% endif %}
+        <script>
+            const header = document.getElementById('top');
+            const wrappers = document.querySelectorAll('.sticky-wrapper');
+            const headerObserver = new IntersectionObserver(([entry]) => {
+                const pastHeader = !entry.isIntersecting;
+                wrappers.forEach(w => w.classList.toggle('past-header', pastHeader));
+            });
+            headerObserver.observe(header);
+
+            const stickyObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    entry.target.classList.toggle('stuck', entry.intersectionRatio < 1);
+                });
+            }, { threshold: 1, rootMargin: '-1px 0px 0px 0px' });
+            wrappers.forEach(w => stickyObserver.observe(w));
+
+            document.querySelectorAll('.top-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            });
+        </script>
     </body>
 </html>

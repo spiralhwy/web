@@ -60,8 +60,7 @@ a.area-link:hover {
     font-weight: bold;
     letter-spacing: 1px;
     font-size: 1.5em;
-    margin: 100px auto 15px;
-    max-width: 900px;
+    margin: 100px 0 15px;
     padding: 0 20px ;
 }
 
@@ -131,6 +130,29 @@ a.area-link:hover {
     z-index: 1000;
     width: 100%;
     padding: 20px 0 10px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.top-btn {
+    font-family: "ibm_mono", monospace;
+    font-size: 1.5em;
+    color: #fff;
+    text-decoration: none;
+    padding: 0 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.0s;
+}
+
+.sticky-wrapper.past-header.stuck .top-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.top-btn:hover {
+    color: #f00;
 }
 
 .sticky-wrapper::after {
@@ -149,7 +171,7 @@ a.area-link:hover {
     font-weight: bold;
     letter-spacing: 1px;
     font-size: 1.5em;
-    margin: 0 auto 15px;
+    margin: 0 0 15px;
 }
 
 .theater-info {
@@ -193,7 +215,7 @@ a.area-link:hover {
         font-weight: bold;
         letter-spacing: 1px;
         font-size: 1.5em;
-        margin: 60px auto 15px;
+        margin: 60px 0 15px;
         padding: 0 10px;
     }
 
@@ -226,7 +248,11 @@ a.area-link:hover {
         font-weight: bold;
         font-size: 1.5em;
         letter-spacing: 1px;
-        margin: 0 auto 10px;
+        margin: 0 0 10px;
+    }
+
+    .top-btn {
+        padding: 0 10px;
     }
 
     .theater-info {
