@@ -115,6 +115,7 @@ a.area-link:hover {
     font-size: 0.9em;
     text-align: center;
     word-break: break-word;
+    margin-top: 0;
 }
 
 .site-title {
@@ -122,13 +123,14 @@ a.area-link:hover {
     font-size: 4em;
     text-align: center;
     word-break: break-word;
+    margin-bottom: 0.33em;
 }
 
 /* Calendar */
 
 #calendar {
-    max-width: 320px;
-    margin: 20px auto 0;
+    max-width: 270px;
+    margin: 60px auto 0;
 }
 
 .cal-header {
@@ -169,6 +171,10 @@ a.area-link:hover {
     font-size: 0.75em;
     color: #707070;
     padding-bottom: 6px;
+}
+
+#cal-days {
+    grid-template-rows: repeat(6, 1fr);
 }
 
 .cal-day {
