@@ -125,7 +125,7 @@ a.area-link:hover {
     margin-bottom: 0.33em;
 }
 
-#indie-filter {
+#indie-mode {
     display: block;
     max-width: 270px;
     margin: 12px auto 0;
@@ -134,7 +134,7 @@ a.area-link:hover {
     cursor: pointer;
 }
 
-#indie-filter:hover {
+#indie-mode:hover {
     color: #f00;
 }
 
@@ -347,7 +347,7 @@ a.area-link:hover {
     }
 
     .top-btn {
-        padding: 0 10px;
+        padding: 0 15px;
     }
 
     .theater-info {

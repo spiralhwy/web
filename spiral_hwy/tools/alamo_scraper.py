@@ -25,7 +25,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from web_scraper import MovieListing, MovieShowing, WebScraper
 
 ALAMO_SF_URL = "https://drafthouse.com/sf"
-ALAMO_SF_THEATER = "alamo_drafthouse_sf"
+ALAMO_SF_THEATER = "alamo_drafthouse"
 ALAMO_SF_THEATER_LINK = "https://drafthouse.com/sf/theater/new-mission"
 ALAMO_SF_AREA = "mission"
 ALAMO_SF_MAP = "https://maps.google.com/?q=2550+Mission+St,+San+Francisco,+CA+94110"

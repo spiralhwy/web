@@ -32,8 +32,8 @@
             <div id="cal-days" class="cal-grid"></div>
         </div>
 
-        <label id="indie-filter">
-            <input type="checkbox" id="indie-only"> Indie Only
+        <label id="indie-mode">
+            <input type="checkbox" id="indie-mode-toggle"> Indie Mode
         </label>
 
         </br>
@@ -110,8 +110,8 @@
                 });
             });
         (function() {
-            const corporate = ['alamo_drafthouse_sf'];
-            const checkbox = document.getElementById('indie-only');
+            const corporate = ['alamo_drafthouse', 'landmark_opera_plaza'];
+            const checkbox = document.getElementById('indie-mode-toggle');
             function applyFilter() {
                 const hide = checkbox.checked;
                 document.querySelectorAll('.theater-info').forEach(function(el) {
