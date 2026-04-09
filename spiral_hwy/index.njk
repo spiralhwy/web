@@ -57,7 +57,7 @@
                                         {{ listing.theater | replace("_", " ") | title }}
                                     </a> 
                                     <a href="{{ listing.map }}" target="_blank" class="area-link" >
-                                        {{ listing.area | title }}
+                                        {{ listing.area | replace("_", " ") | title }}
                                     </a>
                                     <span class="showtimes">
                                         {% for showing in listing.showings %}

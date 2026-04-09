@@ -14,6 +14,7 @@ from omegaconf import DictConfig
 from selenium.webdriver.common.by import By
 
 from spiral_hwy.tools.alamo_scraper import AlamoScraper
+from spiral_hwy.tools.landmark_scraper import LandmarkScraper
 from spiral_hwy.tools.web_scraper import (
     MovieShowing,
     WebScraper,
@@ -233,6 +234,113 @@ def test_alamo():
             "undertone",
             "",  # unrelated image, no slug
         ]
+
+    finally:
+        driver.quit()
+
+
+def test_landmark():
+    """
+    Test Landmark scraper: date parsing, time parsing, theater selection,
+    movie extraction, and showtime detection from fixture HTML.
+    """
+    pacific_tz = pytz.timezone("US/Pacific")
+    today = pacific_tz.localize(datetime(2026, 4, 1))
+
+    # ------------------------------------------------------------------
+    # _parse_date
+    # ------------------------------------------------------------------
+    parse = LandmarkScraper._parse_date
+
+    # "Today" / "Tomorrow"
+    assert parse("Today", today) == "2026-04-01"
+    assert parse("Tomorrow", today) == "2026-04-02"
+
+    # "m/d" patterns
+    assert parse("4/1", today) == "2026-04-01"
+    assert parse("4/2", today) == "2026-04-02"
+    assert parse("12/25", today) == "2026-12-25"
+
+    # With day name prefix
+    assert parse("Wed 4/2", today) == "2026-04-02"
+    assert parse("Today 4/1", today) == "2026-04-01"
+
+    # Past dates roll to next year
+    assert parse("3/1", today) == "2027-03-01"
+
+    # "Mon DD" pattern (e.g., "Apr 3")
+    assert parse("Apr 3", today) == "2026-04-03"
+    assert parse("Thu Apr 3", today) == "2026-04-03"
+
+    # "DayAbbrev DD" pattern (e.g., "Sat 4" or "Sat4") — bare day number
+    # Must match both day-of-month AND weekday (2026-04-01 is a Wednesday)
+    assert parse("Wed 1", today) == "2026-04-01"
+    assert parse("Thu 2", today) == "2026-04-02"
+    assert parse("Fri 3", today) == "2026-04-03"
+    assert parse("Sat4", today) == "2026-04-04"
+    assert parse("Sun5", today) == "2026-04-05"
+    # "Mon1" can't be Apr 1 (Wed) — next Mon the 1st is Jun 1
+    assert parse("Mon1", today) == "2026-06-01"
+    # Weekday mismatch: "Sat9" on Apr 9 (Thu) → next Sat the 9th is May 9
+    thu_apr_9 = pacific_tz.localize(datetime(2026, 4, 9))
+    assert parse("Sat9", thu_apr_9) == "2026-05-09"
+    assert parse("Thu9", thu_apr_9) == "2026-04-09"
+
+    # Invalid inputs
+    assert parse("", today) is None
+    assert parse("nonsense", today) is None
+
+    # ------------------------------------------------------------------
+    # _parse_12h_time
+    # ------------------------------------------------------------------
+    parse_t = LandmarkScraper._parse_12h_time
+
+    assert parse_t("1:30 PM") == "1330"
+    assert parse_t("7:00 PM") == "1900"
+    assert parse_t("9:30pm") == "2130"
+    assert parse_t("12:00 AM") == "0000"
+    assert parse_t("invalid") is None
+
+    # ------------------------------------------------------------------
+    # Selenium fixture tests
+    # ------------------------------------------------------------------
+    driver = get_driver()
+    try:
+        fixtures = Path(__file__).parent / "websites" / "landmark_opera_plaza"
+        driver.get("file:///" + str(fixtures / "showtimes.html"))
+
+        # _get_date_buttons: should find the 3 date buttons
+        date_buttons = LandmarkScraper._get_date_buttons(driver)
+        date_strs = [d for d, _btn in date_buttons]
+        assert len(date_strs) == 3
+        assert date_strs == ["Today 4/1", "Wed 4/2", "Thu 4/3"]
+
+        # Parsed dates should be valid
+        parsed = [parse(d, today) for d in date_strs]
+        assert parsed == ["2026-04-01", "2026-04-02", "2026-04-03"]
+
+        # _get_movies: should find 2 movies (the third has no showtimes)
+        movies = LandmarkScraper._get_movies(driver)
+        assert len(movies) == 2
+
+        # First movie: The Brutalist
+        title, rating, poster_src, showtimes = movies[0]
+        assert title == "The Brutalist"
+        assert rating == "R"
+        assert len(showtimes) == 2
+        assert showtimes[0][0] == "1:30 PM"  # time_str
+        assert showtimes[0][2] is False  # not sold out
+        assert showtimes[1][0] == "7:00 PM"
+
+        # Second movie: Anora
+        title, rating, poster_src, showtimes = movies[1]
+        assert title == "Anora"
+        assert rating == "R"
+        assert len(showtimes) == 2
+        assert showtimes[0][0] == "4:15 PM"
+        assert showtimes[0][2] is False
+        assert showtimes[1][0] == "9:30 PM"
+        assert showtimes[1][2] is True  # sold out
 
     finally:
         driver.quit()

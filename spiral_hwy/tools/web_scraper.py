@@ -446,15 +446,30 @@ class WebScraper:
 
 @hydra.main(version_base=None, config_path="../configs", config_name="main")
 def main(config: DictConfig):
-    from alamo_scraper import AlamoScraper
+    from landmark_scraper import LandmarkScraper
 
-    ws = AlamoScraper()
+    ws = LandmarkScraper()
 
     layout: DictConfig = config.veezi.dates_list
     first_element = layout[0]
 
     try:
         driver = get_driver()
+
+        print("-" * 10, "scrape landmark_opera_plaza", "-" * 10)
+        try:
+            ws.scrape_landmark(driver)
+        except Exception as e:
+            print("-" * 10, "scrape failed landmark_opera_plaza", "-" * 10)
+            print(f"Exception:\n{e}")
+
+        print("-" * 10, "scrape alamo_drafthouse_sf", "-" * 10)
+        try:
+            ws.scrape_alamo_sf(driver)
+        except Exception as e:
+            print("-" * 10, "scrape failed alamo_drafthouse_sf", "-" * 10)
+            print(f"Exception:\n{e}")
+
         for w in config.veezi.websites:
             try:
                 print("-" * 10, f"scrape {w.theater}", "-" * 10)
@@ -465,13 +480,6 @@ def main(config: DictConfig):
                 print("-" * 10, f"scrape failed {w.theater}", "-" * 10)
                 print(f"Exception:\n{e}")
                 driver = get_driver()
-
-        print("-" * 10, "scrape alamo_drafthouse_sf", "-" * 10)
-        try:
-            ws.scrape_alamo_sf(driver)
-        except Exception as e:
-            print("-" * 10, "scrape failed alamo_drafthouse_sf", "-" * 10)
-            print(f"Exception:\n{e}")
 
         json_path = Path(__file__).parent.parent / "_data" / "movies.json"
         ws.save_json(json_path)  # sorts data as well
