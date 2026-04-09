@@ -125,6 +125,19 @@ a.area-link:hover {
     margin-bottom: 0.33em;
 }
 
+#indie-filter {
+    display: block;
+    max-width: 270px;
+    margin: 12px auto 0;
+    font-family: "ibm_mono", monospace;
+    font-size: 0.85em;
+    cursor: pointer;
+}
+
+#indie-filter:hover {
+    color: #f00;
+}
+
 /* Calendar */
 
 #calendar {
