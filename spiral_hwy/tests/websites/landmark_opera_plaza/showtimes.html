@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><title>Landmark Showtimes Test Fixture</title></head>
+<body>
+  <!-- Theater selector -->
+  <div class="theater-selector">
+    <button>Please select a location</button>
+    <ul>
+      <li role="option">Landmark Nuart Theatre West Los Angeles</li>
+      <li role="option">Landmark Opera Plaza Cinema San Francisco</li>
+      <li role="option">Landmark Aquarius Theatre Palo Alto</li>
+    </ul>
+  </div>
+
+  <!-- Date selector buttons -->
+  <div class="DateSelector">
+    <button>Today 4/1</button>
+    <button>Wed 4/2</button>
+    <button>Thu 4/3</button>
+  </div>
+
+  <!-- Movie cards -->
+  <div class="MovieCard">
+    <div class="MovieTitle"><h2>The Brutalist</h2></div>
+    <div class="Rating">R</div>
+    <img src="file:///tmp/test-poster.png" alt="The Brutalist">
+    <div class="Showtimes">
+      <a href="https://www.landmarktheatres.com/ticket/123" class="SessionButton">1:30 PM</a>
+      <a href="https://www.landmarktheatres.com/ticket/124" class="SessionButton">7:00 PM</a>
+    </div>
+  </div>
+
+  <div class="MovieCard">
+    <div class="MovieTitle"><h2>Anora</h2></div>
+    <div class="Rating">R</div>
+    <img src="file:///tmp/test-poster2.png" alt="Anora">
+    <div class="Showtimes">
+      <a href="https://www.landmarktheatres.com/ticket/125" class="SessionButton">4:15 PM</a>
+      <a href="https://www.landmarktheatres.com/ticket/126" class="SessionButton sold-out">9:30 PM</a>
+    </div>
+  </div>
+
+  <div class="MovieCard">
+    <div class="MovieTitle"><h2>Empty Movie</h2></div>
+    <div class="Rating">PG-13</div>
+    <img src="file:///tmp/test-poster3.png" alt="Empty Movie">
+    <div class="Showtimes">
+      <!-- No showtimes -->
+    </div>
+  </div>
+</body>
+</html>
