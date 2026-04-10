@@ -261,6 +261,15 @@ a.area-link:hover {
     border-bottom: 1px solid #fff;
 }
 
+.sticky-wrapper.flash .date {
+    animation: text-flash 0.8s ease-out;
+}
+
+@keyframes text-flash {
+    0%   { color: #f00; }
+    100% { color: #fff; }
+}
+
 .sticky-wrapper .date {
     font-family: nyght, "ibm_mono", monospace;
     font-weight: bold;
