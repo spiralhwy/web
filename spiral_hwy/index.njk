@@ -32,6 +32,10 @@
             <div id="cal-days" class="cal-grid"></div>
         </div>
 
+        <label id="indie-mode">
+            <input type="checkbox" id="indie-mode-toggle"> Indie Mode
+        </label>
+
         </br>
         {% if movies %}
             {% for m in movies %}
@@ -52,7 +56,7 @@
                         </div>
                         <div class="movie-info">
                             {% for listing in movie_data.listings %}
-                                <div class="theater-info">
+                                <div class="theater-info" data-theater="{{ listing.theater }}">
                                     <a href="{{ listing.theater_link }}" target="_blank" class="theater-name">
                                         {{ listing.theater | replace("_", " ") | title }}
                                     </a> 
@@ -92,6 +96,8 @@
             });
             headerObserver.observe(header);
 
+            let currentStuck = null;
+            let scrollTarget = null;
             const stickyObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     entry.target.classList.toggle('stuck', entry.intersectionRatio < 1);
@@ -99,12 +105,79 @@
             }, { threshold: 1, rootMargin: '-1px 0px 0px 0px' });
             wrappers.forEach(w => stickyObserver.observe(w));
 
+            window.addEventListener('scroll', function() {
+                // find the last wrapper (in DOM order) whose natural position
+                // has scrolled to or past the viewport top — that's the visible sticky header
+                let active = null;
+                wrappers.forEach(w => {
+                    if (w.offsetTop <= window.scrollY) {
+                        active = w;
+                    }
+                });
+                if (!active) {
+                    currentStuck = null;
+                } else if (active !== currentStuck) {
+                    currentStuck = active;
+                    if (!scrollTarget) {
+                        active.classList.remove('flash');
+                        void active.offsetWidth;
+                        active.classList.add('flash');
+                    }
+                }
+            });
+
             document.querySelectorAll('.top-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
+                    scrollTarget = true; // suppress flash during scroll
+                    window.addEventListener('scrollend', function clear() {
+                        window.removeEventListener('scrollend', clear);
+                        scrollTarget = null;
+                    });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
             });
+        (function() {
+            const corporate = ['alamo_drafthouse', 'landmark_opera_plaza'];
+            const checkbox = document.getElementById('indie-mode-toggle');
+            function applyFilter() {
+                const hide = checkbox.checked;
+                document.querySelectorAll('.theater-info').forEach(function(el) {
+                    if (corporate.includes(el.dataset.theater)) {
+                        el.style.display = hide ? 'none' : '';
+                    }
+                });
+                // hide movie blocks where all listings are hidden
+                document.querySelectorAll('.movie-block').forEach(function(block) {
+                    const listings = block.querySelectorAll('.theater-info');
+                    const visible = Array.from(listings).some(function(el) {
+                        return el.style.display !== 'none';
+                    });
+                    block.style.display = visible ? '' : 'none';
+                    // hide the following divider too
+                    const next = block.nextElementSibling;
+                    if (next && next.classList.contains('divider')) {
+                        next.style.display = visible ? '' : 'none';
+                    }
+                });
+                // hide date headers where all movies are hidden
+                document.querySelectorAll('.sticky-wrapper').forEach(function(wrapper) {
+                    let sibling = wrapper.nextElementSibling;
+                    let anyVisible = false;
+                    while (sibling && !sibling.classList.contains('sticky-wrapper')) {
+                        if (sibling.classList.contains('movie-block') && sibling.style.display !== 'none') {
+                            anyVisible = true;
+                            break;
+                        }
+                        sibling = sibling.nextElementSibling;
+                    }
+                    wrapper.style.display = anyVisible ? '' : 'none';
+                });
+            }
+            checkbox.addEventListener('change', applyFilter);
+            applyFilter();
+        })();
+
         (function() {
             const dates = [{% for m in movies %}"{{ m.date }}"{% if not loop.last %},{% endif %}{% endfor %}];
             const dateSet = new Set(dates);
@@ -188,6 +261,17 @@
                         e.preventDefault();
                         var target = document.querySelector(el.getAttribute('href'));
                         if (target) {
+                            scrollTarget = target;
+                            function onScrollEnd() {
+                                window.removeEventListener('scrollend', onScrollEnd);
+                                if (scrollTarget) {
+                                    scrollTarget.classList.remove('flash');
+                                    void scrollTarget.offsetWidth;
+                                    scrollTarget.classList.add('flash');
+                                    scrollTarget = null;
+                                }
+                            }
+                            window.addEventListener('scrollend', onScrollEnd);
                             target.scrollIntoView({ behavior: 'smooth' });
                         }
                     });
