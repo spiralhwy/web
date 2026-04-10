@@ -49,7 +49,7 @@ shell = """djlint ./spiral_hwy/*.njk --profile=nunjucks"""
 
 [tool.poe.tasks.lint-css]
 help = "Lint CSS"
-cmd = "npx stylelint 'spiral_hwy/css/*.css' --fix"
+cmd = "./node_modules/.bin/stylelint 'spiral_hwy/css/*.css' --fix"
 
 [tool.poe.tasks.lint] 
 sequence = ["lint-py-isort", "lint-py-black", "lint-yml", "lint-css", "lint-njk"]

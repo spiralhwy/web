@@ -241,13 +241,13 @@ a.area-link:hover {
     transition: opacity 0.0s;
 }
 
+.top-btn:hover {
+    color: #f00;
+}
+
 .sticky-wrapper.past-header.stuck .top-btn {
     opacity: 1;
     pointer-events: auto;
-}
-
-.top-btn:hover {
-    color: #f00;
 }
 
 .sticky-wrapper::after {
@@ -261,6 +261,14 @@ a.area-link:hover {
     border-bottom: 1px solid #fff;
 }
 
+.sticky-wrapper .date {
+    font-family: nyght, "ibm_mono", monospace;
+    font-weight: bold;
+    letter-spacing: 1px;
+    font-size: 1.5em;
+    margin: 0 0 15px;
+}
+
 .sticky-wrapper.flash .date {
     animation: text-flash 0.8s ease-out;
 }
@@ -268,14 +276,6 @@ a.area-link:hover {
 @keyframes text-flash {
     0%   { color: #f00; }
     100% { color: #fff; }
-}
-
-.sticky-wrapper .date {
-    font-family: nyght, "ibm_mono", monospace;
-    font-weight: bold;
-    letter-spacing: 1px;
-    font-size: 1.5em;
-    margin: 0 0 15px;
 }
 
 .theater-info {

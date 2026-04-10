@@ -79,11 +79,11 @@ class LandmarkScraper(AlamoScraper):
         )
 
         # Iterate through date buttons, scraping movies for each date
-        date_buttons = self._get_landmark_date_buttons(driver)
+        date_buttons = self._get_date_buttons(driver)
         print(f"  Landmark Opera Plaza: found {len(date_buttons)} date(s)")
 
         for i, (date_str, _btn) in enumerate(date_buttons):
-            buttons = self._get_landmark_date_buttons(driver)
+            buttons = self._get_date_buttons(driver)
             if i >= len(buttons):
                 break
             date_str, btn = buttons[i]
@@ -188,7 +188,7 @@ class LandmarkScraper(AlamoScraper):
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _get_landmark_date_buttons(driver: WebDriver) -> list[tuple[str, object]]:
+    def _get_date_buttons(driver: WebDriver) -> list[tuple[str, object]]:
         """
         Find date selector buttons. Returns [(date_text, button_element)].
         The Landmark Gatsby site uses date-selector buttons styled as tabs.
