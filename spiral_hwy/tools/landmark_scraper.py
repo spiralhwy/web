@@ -15,18 +15,20 @@ from datetime import datetime, timedelta
 
 import pytz
 import requests
+from alamo_scraper import AlamoScraper
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from alamo_scraper import AlamoScraper
 from web_scraper import MovieListing, MovieShowing
 
 LANDMARK_SHOWTIMES_URL = "https://www.landmarktheatres.com/showtimes/"
 LANDMARK_THEATER_ID = "X00U8"
 LANDMARK_THEATER = "landmark_opera_plaza"
-LANDMARK_THEATER_LINK = "https://www.landmarktheatres.com/san-francisco/opera-plaza-cinema"
+LANDMARK_THEATER_LINK = (
+    "https://www.landmarktheatres.com/san-francisco/opera-plaza-cinema"
+)
 LANDMARK_AREA = "civic_center"
 LANDMARK_MAP = "https://maps.app.goo.gl/kqZu2DAkUSAYxtrP9"
 
@@ -48,13 +50,18 @@ class LandmarkScraper(AlamoScraper):
         try:
             WebDriverWait(driver, 30).until(
                 EC.presence_of_element_located(
-                    (By.XPATH, "//*[contains(text(), 'Please select a location') or contains(text(), 'select a location')]")
+                    (
+                        By.XPATH,
+                        "//*[contains(text(), 'Please select a location') or contains(text(), 'select a location')]",
+                    )
                 )
             )
         except TimeoutException:
             try:
                 WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, "button, [role='button']"))
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, "button, [role='button']")
+                    )
                 )
             except TimeoutException:
                 print("  Landmark: timed out waiting for theater selector")
@@ -199,7 +206,9 @@ class LandmarkScraper(AlamoScraper):
             buttons = driver.find_elements(By.CSS_SELECTOR, sel)
             if buttons:
                 for btn in buttons:
-                    text = " ".join((btn.get_attribute("textContent") or "").split()).strip()
+                    text = " ".join(
+                        (btn.get_attribute("textContent") or "").split()
+                    ).strip()
                     if text:
                         result.append((text, btn))
                 if result:
@@ -213,7 +222,8 @@ class LandmarkScraper(AlamoScraper):
             if re.search(
                 r"\d{1,2}/\d{1,2}|\w+day|today|tomorrow"
                 r"|^(mon|tue|wed|thu|fri|sat|sun)\s*\d{1,2}$",
-                text, re.I,
+                text,
+                re.I,
             ):
                 result.append((text, btn))
 
@@ -241,7 +251,8 @@ class LandmarkScraper(AlamoScraper):
             return movies
 
         # Structural approach for the real site: extract via JS
-        raw = driver.execute_script(r"""
+        raw = driver.execute_script(
+            r"""
             var SKIP_ALTS = ['Spinner', 'Landmark', 'decorative'];
             function isMovieImg(img) {
                 var alt = (img.alt || '').trim();
@@ -306,7 +317,8 @@ class LandmarkScraper(AlamoScraper):
                 result.push({title: t, rating: m.rating, poster: m.poster, showtimes: m.showtimes});
             }
             return result;
-        """)
+        """
+        )
 
         movies = []
         for entry in raw:
@@ -370,8 +382,18 @@ class LandmarkScraper(AlamoScraper):
 
         # Try "dayname Mon DD" pattern (e.g., "Wed Apr 2")
         month_names = {
-            "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
-            "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+            "jan": 1,
+            "feb": 2,
+            "mar": 3,
+            "apr": 4,
+            "may": 5,
+            "jun": 6,
+            "jul": 7,
+            "aug": 8,
+            "sep": 9,
+            "oct": 10,
+            "nov": 11,
+            "dec": 12,
         }
         m = re.search(r"([a-z]{3})\s+(\d{1,2})", text)
         if m:
@@ -391,8 +413,13 @@ class LandmarkScraper(AlamoScraper):
         # Try "DayAbbrev DD" pattern (e.g., "Sat 4", "Sat4", "Wed 9") — bare day number
         day_abbrevs = {"mon", "tue", "wed", "thu", "fri", "sat", "sun"}
         day_abbrev_to_weekday = {
-            "mon": 0, "tue": 1, "wed": 2, "thu": 3,
-            "fri": 4, "sat": 5, "sun": 6,
+            "mon": 0,
+            "tue": 1,
+            "wed": 2,
+            "thu": 3,
+            "fri": 4,
+            "sat": 5,
+            "sun": 6,
         }
         m = re.match(r"([a-z]{3})\s*(\d{1,2})$", text)
         if m and m.group(1) in day_abbrevs:
