@@ -7,6 +7,9 @@ defaults:
   - override hydra/job_logging: disabled
 
 
+workers: 1
+
+
 hydra:
   output_subdir: null
   run:

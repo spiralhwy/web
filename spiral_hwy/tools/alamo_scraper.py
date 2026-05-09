@@ -22,10 +22,10 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from web_scraper import MovieListing, MovieShowing, WebScraper
+from web_scraper import MovieListing, MovieShowing, WebScraper, atomic_write_bytes
 
 ALAMO_SF_URL = "https://drafthouse.com/sf"
-ALAMO_SF_THEATER = "alamo_drafthouse"
+ALAMO_SF_THEATER = "alamo_drafthouse_sf"
 ALAMO_SF_THEATER_LINK = "https://drafthouse.com/sf/theater/new-mission"
 ALAMO_SF_AREA = "mission"
 ALAMO_SF_MAP = "https://maps.google.com/?q=2550+Mission+St,+San+Francisco,+CA+94110"
@@ -233,7 +233,7 @@ class AlamoScraper(WebScraper):
                 if "img-assets.drafthouse.com" in src:
                     try:
                         data = requests.get(src, timeout=10).content
-                        save_path.write_bytes(data)
+                        atomic_write_bytes(save_path, data)
                     except Exception:
                         pass
                     break

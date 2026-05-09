@@ -125,17 +125,95 @@ a.area-link:hover {
     margin-bottom: 0.33em;
 }
 
-#indie-mode {
-    display: block;
-    max-width: 270px;
-    margin: 12px auto 0;
+#filter-controls {
+    margin: 16px auto 0;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
     font-family: "ibm_mono", monospace;
     font-size: 0.85em;
-    cursor: pointer;
+    position: relative;
+    z-index: 1100;
 }
 
-#indie-mode:hover {
+.filter-btn {
+    background: none;
+    border: 1px solid #fff;
+    color: #fff;
+    font-family: "ibm_mono", monospace;
+    font-size: 1em;
+    padding: 4px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.filter-btn:hover {
     color: #f00;
+    border-color: #f00;
+}
+
+#indie-mode-btn {
+    box-sizing: border-box;
+    width: 130px;
+    flex: 0 0 130px;
+    text-align: center;
+}
+
+#theater-filter-wrapper {
+    position: relative;
+}
+
+#theater-filter-btn::after {
+    content: " \25BC";
+}
+
+#theater-filter-btn.open::after {
+    content: " \25B2";
+}
+
+#theater-filter-panel {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    background-color: #1f1f1f;
+    border: 1px solid #fff;
+    padding: 8px 12px;
+    min-width: 200px;
+    white-space: nowrap;
+}
+
+#theater-filter-panel.open {
+    display: block;
+}
+
+#theater-filter-reset {
+    display: block;
+    color: #707070;
+    cursor: pointer;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #303030;
+    margin-bottom: 6px;
+}
+
+#theater-filter-reset:hover {
+    color: #f00;
+}
+
+.theater-filter-option {
+    display: block;
+    cursor: pointer;
+    padding: 2px 0;
+}
+
+.theater-filter-option:hover {
+    color: #f00;
+}
+
+.theater-filter-option input {
+    margin-right: 6px;
 }
 
 /* Calendar */
