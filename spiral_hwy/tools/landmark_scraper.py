@@ -21,7 +21,7 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from web_scraper import MovieListing, MovieShowing
+from web_scraper import MovieListing, MovieShowing, atomic_write_bytes
 
 LANDMARK_SHOWTIMES_URL = "https://www.landmarktheatres.com/showtimes/"
 LANDMARK_THEATER_ID = "X00U8"
@@ -347,7 +347,7 @@ class LandmarkScraper(AlamoScraper):
         if not save_path.exists() and poster_src:
             try:
                 data = requests.get(poster_src, timeout=10).content
-                save_path.write_bytes(data)
+                atomic_write_bytes(save_path, data)
             except Exception:
                 pass
 

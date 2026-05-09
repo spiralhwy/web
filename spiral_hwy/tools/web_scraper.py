@@ -5,8 +5,11 @@ Web scraper to get data from movie listing website.
 
 import base64
 import json
+import os
 import re
+import tempfile
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -76,6 +79,47 @@ def catch_optional(func):
             return func(*args, **kwargs)
 
     return wrapper
+
+
+def atomic_write_bytes(path: Path, data: bytes) -> None:
+    """
+    Write bytes to `path` via a same-directory temp file + os.replace, so
+    concurrent writers can't observe a half-written file. Posters are
+    content-addressable, so two writers producing the same bytes is harmless.
+    """
+    path.parent.mkdir(exist_ok=True, parents=True)
+    fd, tmp = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent)
+    )
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except FileNotFoundError:
+            pass
+        raise
+
+
+def merge_listings(dst: dict, src: dict) -> None:
+    """
+    Deep-merge a per-task listings dict into a master listings dict.
+    Same shape as `WebScraper.listings` before sorting:
+        {date: {title: {"poster": ..., "rating": ..., "listings": [...]}}}
+    For a (date, title) seen by multiple tasks, the `listings` arrays are
+    concatenated; poster/rating come from whichever task arrived first.
+    """
+    for date, movies in src.items():
+        date_dict = dst.setdefault(date, {})
+        for title, data in movies.items():
+            if title not in date_dict:
+                date_dict[title] = data
+            else:
+                date_dict[title].setdefault("listings", []).extend(
+                    data.get("listings", [])
+                )
 
 
 def go_to_website(driver: WebDriver, website: str, first_element: DictConfig) -> None:
@@ -320,10 +364,8 @@ class WebScraper:
 
         poster_src = element.get_attribute("src")
         save_path = self.poster_dir / f"{self.assets[config.name]}.png"
-        save_path.parent.mkdir(exist_ok=True, parents=True)
-        save_path = str(save_path)
 
-        if not Path(save_path).exists():
+        if not save_path.exists():
             file_str = "file://"
             if poster_src.startswith(file_str):
                 local_path = poster_src[len(file_str) :]  # Strip off "file://"
@@ -332,8 +374,7 @@ class WebScraper:
             else:
                 img_data = requests.get(poster_src).content
 
-            with open(save_path, "wb") as handler:
-                handler.write(img_data)
+            atomic_write_bytes(save_path, img_data)
 
     def _sort_showings_by_times(self) -> None:
         """
@@ -444,48 +485,78 @@ class WebScraper:
         self._unpack_list(root, config)
 
 
-@hydra.main(version_base=None, config_path="../configs", config_name="main")
-def main(config: DictConfig):
+def _scrape_landmark_task() -> dict:
     from landmark_scraper import LandmarkScraper
 
-    ws = LandmarkScraper()
-
-    layout: DictConfig = config.veezi.dates_list
-    first_element = layout[0]
-
+    driver = get_driver()
     try:
-        driver = get_driver()
-
-        print("-" * 10, "scrape landmark_opera_plaza", "-" * 10)
-        try:
-            ws.scrape_landmark(driver)
-        except Exception as e:
-            print("-" * 10, "scrape failed landmark_opera_plaza", "-" * 10)
-            print(f"Exception:\n{e}")
-
-        print("-" * 10, "scrape alamo_drafthouse_sf", "-" * 10)
-        try:
-            ws.scrape_alamo_sf(driver)
-        except Exception as e:
-            print("-" * 10, "scrape failed alamo_drafthouse_sf", "-" * 10)
-            print(f"Exception:\n{e}")
-
-        for w in config.veezi.websites:
-            try:
-                print("-" * 10, f"scrape {w.theater}", "-" * 10)
-                go_to_website(driver, w.showings, first_element)
-                ws.scrape(driver, layout, w)
-            # except Exception as e:
-            except Exception as e:
-                print("-" * 10, f"scrape failed {w.theater}", "-" * 10)
-                print(f"Exception:\n{e}")
-                driver = get_driver()
-
-        json_path = Path(__file__).parent.parent / "_data" / "movies.json"
-        ws.save_json(json_path)  # sorts data as well
-
+        s = LandmarkScraper()
+        s.scrape_landmark(driver)
+        return s.listings
     finally:
         driver.quit()
+
+
+def _scrape_alamo_task() -> dict:
+    from alamo_scraper import AlamoScraper
+
+    driver = get_driver()
+    try:
+        s = AlamoScraper()
+        s.scrape_alamo_sf(driver)
+        return s.listings
+    finally:
+        driver.quit()
+
+
+def _scrape_veezi_task(website, layout: DictConfig, first_element: DictConfig) -> dict:
+    driver = get_driver()
+    try:
+        s = WebScraper()
+        go_to_website(driver, website.showings, first_element)
+        s.scrape(driver, layout, website)
+        return s.listings
+    finally:
+        driver.quit()
+
+
+@hydra.main(version_base=None, config_path="../configs", config_name="main")
+def main(config: DictConfig):
+    layout: DictConfig = config.veezi.dates_list
+    first_element = layout[0]
+    workers = int(getattr(config, "workers", 1) or 1)
+
+    tasks = [
+        ("landmark_opera_plaza", _scrape_landmark_task, ()),
+        ("alamo_drafthouse_sf", _scrape_alamo_task, ()),
+    ]
+    for w in config.veezi.websites:
+        tasks.append((w.theater, _scrape_veezi_task, (w, layout, first_element)))
+
+    master = WebScraper()
+
+    if workers <= 1:
+        for name, fn, args in tasks:
+            print("-" * 10, f"scrape {name}", "-" * 10)
+            try:
+                merge_listings(master.listings, fn(*args))
+            except Exception as e:
+                print("-" * 10, f"scrape failed {name}", "-" * 10)
+                print(f"Exception:\n{e}")
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            future_name = {ex.submit(fn, *args): name for name, fn, args in tasks}
+            for fut in as_completed(future_name):
+                name = future_name[fut]
+                try:
+                    merge_listings(master.listings, fut.result())
+                    print("-" * 10, f"scraped {name}", "-" * 10)
+                except Exception as e:
+                    print("-" * 10, f"scrape failed {name}", "-" * 10)
+                    print(f"Exception:\n{e}")
+
+    json_path = Path(__file__).parent.parent / "_data" / "movies.json"
+    master.save_json(json_path)
 
 
 if __name__ == "__main__":
