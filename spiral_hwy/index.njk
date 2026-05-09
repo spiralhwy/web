@@ -32,9 +32,16 @@
             <div id="cal-days" class="cal-grid"></div>
         </div>
 
-        <label id="indie-mode">
-            <input type="checkbox" id="indie-mode-toggle"> Indie Mode
-        </label>
+        <div id="filter-controls">
+            <button type="button" id="indie-mode-btn" class="filter-btn">Indie Mode</button>
+            <div id="theater-filter-wrapper">
+                <button type="button" id="theater-filter-btn" class="filter-btn">Theater Filter</button>
+                <div id="theater-filter-panel">
+                    <a href="#" id="theater-filter-reset">Reset</a>
+                    <div id="theater-filter-list"></div>
+                </div>
+            </div>
+        </div>
 
         </br>
         {% if movies %}
@@ -138,29 +145,71 @@
                 });
             });
         (function() {
-            const corporate = ['alamo_drafthouse', 'landmark_opera_plaza'];
-            const checkbox = document.getElementById('indie-mode-toggle');
-            function applyFilter() {
-                const hide = checkbox.checked;
-                document.querySelectorAll('.theater-info').forEach(function(el) {
-                    if (corporate.includes(el.dataset.theater)) {
-                        el.style.display = hide ? 'none' : '';
-                    }
+            const corporate = ['alamo_drafthouse_sf', 'landmark_opera_plaza'];
+
+            // Discover all theaters from the rendered listings.
+            const theaters = new Map();
+            document.querySelectorAll('.theater-info').forEach(function(el) {
+                const slug = el.dataset.theater;
+                if (!theaters.has(slug)) {
+                    const nameEl = el.querySelector('.theater-name');
+                    theaters.set(slug, nameEl ? nameEl.textContent.trim() : slug);
+                }
+            });
+            const allSlugs = Array.from(theaters.keys()).sort(function(a, b) {
+                return theaters.get(a).localeCompare(theaters.get(b));
+            });
+            const indieSlugs = allSlugs.filter(function(s) { return !corporate.includes(s); });
+            const selected = new Set();
+
+            const indieBtn = document.getElementById('indie-mode-btn');
+            const filterBtn = document.getElementById('theater-filter-btn');
+            const filterPanel = document.getElementById('theater-filter-panel');
+            const filterList = document.getElementById('theater-filter-list');
+            const resetLink = document.getElementById('theater-filter-reset');
+
+            allSlugs.forEach(function(slug) {
+                const label = document.createElement('label');
+                label.className = 'theater-filter-option';
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = false;
+                cb.dataset.theater = slug;
+                cb.addEventListener('change', function() {
+                    if (cb.checked) selected.add(slug);
+                    else selected.delete(slug);
+                    applyFilter();
                 });
-                // hide movie blocks where all listings are hidden
+                label.appendChild(cb);
+                label.appendChild(document.createTextNode(' ' + theaters.get(slug)));
+                filterList.appendChild(label);
+            });
+
+            function isIndieSelection() {
+                if (selected.size !== indieSlugs.length) return false;
+                for (const s of indieSlugs) {
+                    if (!selected.has(s)) return false;
+                }
+                return true;
+            }
+
+            function applyFilter() {
+                // Empty selection means show all; otherwise show only the selected.
+                const showAll = selected.size === 0;
+                document.querySelectorAll('.theater-info').forEach(function(el) {
+                    el.style.display = (showAll || selected.has(el.dataset.theater)) ? '' : 'none';
+                });
                 document.querySelectorAll('.movie-block').forEach(function(block) {
                     const listings = block.querySelectorAll('.theater-info');
                     const visible = Array.from(listings).some(function(el) {
                         return el.style.display !== 'none';
                     });
                     block.style.display = visible ? '' : 'none';
-                    // hide the following divider too
                     const next = block.nextElementSibling;
                     if (next && next.classList.contains('divider')) {
                         next.style.display = visible ? '' : 'none';
                     }
                 });
-                // hide date headers where all movies are hidden
                 document.querySelectorAll('.sticky-wrapper').forEach(function(wrapper) {
                     let sibling = wrapper.nextElementSibling;
                     let anyVisible = false;
@@ -173,8 +222,44 @@
                     }
                     wrapper.style.display = anyVisible ? '' : 'none';
                 });
+                indieBtn.textContent = isIndieSelection() ? 'Reset Filter' : 'Indie Mode';
             }
-            checkbox.addEventListener('change', applyFilter);
+
+            function setSelected(slugs) {
+                selected.clear();
+                slugs.forEach(function(s) { selected.add(s); });
+                filterList.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+                    cb.checked = selected.has(cb.dataset.theater);
+                });
+                applyFilter();
+            }
+
+            indieBtn.addEventListener('click', function() {
+                if (isIndieSelection()) {
+                    setSelected([]);
+                } else {
+                    setSelected(indieSlugs);
+                }
+            });
+
+            resetLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                setSelected([]);
+            });
+
+            filterBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                filterPanel.classList.toggle('open');
+                filterBtn.classList.toggle('open');
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!filterPanel.contains(e.target) && e.target !== filterBtn) {
+                    filterPanel.classList.remove('open');
+                    filterBtn.classList.remove('open');
+                }
+            });
+
             applyFilter();
         })();
 
