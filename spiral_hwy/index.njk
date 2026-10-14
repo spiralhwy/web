@@ -74,10 +74,12 @@
                                         {% for showing in listing.showings %}
                                             <a href="{{ showing.link }}" 
                                             target="_blank" 
-                                            class="time {% if showing.available == 'SOLD OUT' %}sold-out{% endif %}">
+                                            class="time {% if showing.available == 'SOLD OUT' %}sold-out{% endif %}"
+                                            data-date="{{ m.date }}"
+                                            data-time="{{ showing.time }}">
                                                 {{ showing.time | formatTime }}
                                             </a>
-                                            {% if not loop.last %} | {% endif %}
+                                            {% if not loop.last %}<span class="time-sep"> | </span>{% endif %}
                                         {% endfor %}  {# showing #}
                                     </span>
                                 </div>
@@ -95,6 +97,66 @@
             <p>No movie data available</p>
         {% endif %}
         <script>
+        // Remove showings that have already started (in San Francisco time),
+        // along with any listings, movies, and dates left empty as a result.
+        // Runs first so the observers and filters below only see what remains.
+        (function() {
+            const parts = {};
+            new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/Los_Angeles',
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+            }).formatToParts(new Date()).forEach(function(p) { parts[p.type] = p.value; });
+            const nowDate = parts.year + '-' + parts.month + '-' + parts.day;
+            const nowTime = parts.hour + parts.minute;
+
+            document.querySelectorAll('.showtimes .time').forEach(function(el) {
+                const date = el.dataset.date;
+                if (date < nowDate || (date === nowDate && el.dataset.time < nowTime)) {
+                    el.remove();
+                }
+            });
+
+            // Tidy separators so remaining times read "a | b" with no stray pipes.
+            document.querySelectorAll('.showtimes').forEach(function(showtimes) {
+                let prevIsTime = false;
+                Array.from(showtimes.children).forEach(function(child) {
+                    if (child.classList.contains('time-sep')) {
+                        if (!prevIsTime) child.remove();
+                        prevIsTime = false;
+                    } else {
+                        prevIsTime = true;
+                    }
+                });
+                const last = showtimes.lastElementChild;
+                if (last && last.classList.contains('time-sep')) last.remove();
+            });
+
+            document.querySelectorAll('.theater-info').forEach(function(el) {
+                if (!el.querySelector('.showtimes .time')) el.remove();
+            });
+
+            document.querySelectorAll('.movie-block').forEach(function(block) {
+                if (block.querySelector('.theater-info')) return;
+                const prev = block.previousElementSibling;
+                const next = block.nextElementSibling;
+                if (prev && prev.classList.contains('divider')) prev.remove();
+                else if (next && next.classList.contains('divider')) next.remove();
+                block.remove();
+            });
+
+            document.querySelectorAll('.sticky-wrapper').forEach(function(wrapper) {
+                const toRemove = [wrapper];
+                let sibling = wrapper.nextElementSibling;
+                while (sibling && !sibling.classList.contains('sticky-wrapper') && sibling.tagName !== 'SCRIPT') {
+                    if (sibling.classList.contains('movie-block')) return;
+                    toRemove.push(sibling);
+                    sibling = sibling.nextElementSibling;
+                }
+                toRemove.forEach(function(el) { el.remove(); });
+            });
+        })();
+
             const header = document.getElementById('top');
             const wrappers = document.querySelectorAll('.sticky-wrapper');
             const headerObserver = new IntersectionObserver(([entry]) => {
@@ -265,7 +327,10 @@
 
         (function() {
             const dates = [{% for m in movies %}"{{ m.date }}"{% if not loop.last %},{% endif %}{% endfor %}];
-            const dateSet = new Set(dates);
+            // Only link dates that still have upcoming showings on the page.
+            const dateSet = new Set(dates.filter(function(d) {
+                return document.getElementById('date-' + d);
+            }));
 
             const firstDate = dates[0];
             const lastDate = dates[dates.length - 1];
