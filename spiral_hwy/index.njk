@@ -65,7 +65,7 @@
                             {% for listing in movie_data.listings %}
                                 <div class="theater-info" data-theater="{{ listing.theater }}">
                                     <a href="{{ listing.theater_link }}" target="_blank" class="theater-name">
-                                        {{ listing.theater | replace("_", " ") | title }}
+                                        {{ listing.theater | displayName }}
                                     </a> 
                                     <a href="{{ listing.map }}" target="_blank" class="area-link" >
                                         {{ listing.area | replace("_", " ") | title }}
