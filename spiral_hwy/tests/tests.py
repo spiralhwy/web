@@ -226,14 +226,22 @@ def test_alamo():
         # --- Landing page fixture ---
         driver.get("file:///" + str(fixtures / "landing_page.html"))
 
-        cards = driver.find_elements(By.CLASS_NAME, "adc-show-card")
+        # Now Playing section is found via the .adc-listing_movies wrapper
+        section = AlamoScraper._find_now_playing_section(driver)
+        assert section is not None
+
+        cards = section.find_elements(By.CLASS_NAME, "adc-show-card")
         slugs = [AlamoScraper._card_slug(c) for c in cards]
         assert slugs == [
-            "project-hail-mary",
-            "twin-peaks-marathon",
-            "undertone",
+            "project-hail-mary",  # from the title link
+            "twin-peaks-marathon",  # from the /event/ link
+            "undertone",  # image-only card, from the poster URL
             "",  # unrelated image, no slug
         ]
+
+        # A page with no Now Playing section must report it as missing
+        driver.get("file:///" + str(fixtures / "show_page.html"))
+        assert AlamoScraper._find_now_playing_section(driver) is None
 
     finally:
         driver.quit()
