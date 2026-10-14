@@ -11,25 +11,43 @@
     <div class="show-me-slider-item">4/1</div>
 </div>
 
-<!-- Now-playing section with show cards -->
-<section id="now-playing">
-    <div class="adc-show-card">
-        <img src="https://img-assets.drafthouse.com/images/shows/project-hail-mary/poster.jpg"
-             alt="Project Hail Mary">
-    </div>
-    <div class="adc-show-card">
-        <img src="https://img-assets.drafthouse.com/images/events/twin-peaks-marathon/poster.jpg"
-             alt="Twin Peaks Marathon">
-    </div>
-    <div class="adc-show-card">
-        <img src="https://img-assets.drafthouse.com/images/shows/undertone/poster.jpg"
-             alt="Undertone">
-    </div>
-    <div class="adc-show-card">
-        <!-- Card with no matching image URL pattern -->
+<!-- Now Playing listing. Drafthouse no longer uses id="now-playing"; the
+     section is wrapped in .adc-listing_movies instead. -->
+<div class="adc-listing_movies">
+    <h2 class="adc-section-title" data-testid="adc-section-title">Now Playing</h2>
+    <ion-card class="adc-show-card ion-no-margin md">
+        <a class="adc-show-card__title-link" href="/show/project-hail-mary">
+            <div>Project Hail Mary</div>
+        </a>
+        <div class="adc-show-card__image-wrapper">
+            <img class="loaded"
+                 src="https://img-assets.drafthouse.com/images/shows/project-hail-mary/PROJECT_hero.jpg?auto=compress&amp;w=1920"
+                 alt="">
+        </div>
+    </ion-card>
+    <ion-card class="adc-show-card ion-no-margin md">
+        <a class="adc-show-card__title-link" href="/event/twin-peaks-marathon">
+            <div>Twin Peaks Marathon</div>
+        </a>
+        <div class="adc-show-card__image-wrapper">
+            <img class="loaded"
+                 src="https://img-assets.drafthouse.com/images/events/twin-peaks-marathon/TWIN_hero.jpg"
+                 alt="">
+        </div>
+    </ion-card>
+    <ion-card class="adc-show-card ion-no-margin md">
+        <!-- Image-only card: exercises the poster-URL fallback -->
+        <div class="adc-show-card__image-wrapper">
+            <img class="loaded"
+                 src="https://img-assets.drafthouse.com/images/shows/undertone/UNDERTONE_hero.jpg"
+                 alt="">
+        </div>
+    </ion-card>
+    <ion-card class="adc-show-card ion-no-margin md">
+        <!-- Card with no matching link or image URL pattern -->
         <img src="https://example.com/unrelated.jpg" alt="No slug">
-    </div>
-</section>
+    </ion-card>
+</div>
 
 </body>
 </html>

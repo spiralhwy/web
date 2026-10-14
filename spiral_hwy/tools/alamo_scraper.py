@@ -3,8 +3,9 @@
 Scraper for Alamo Drafthouse SF now-playing listings.
 
 Architecture:
-1. Load https://drafthouse.com/sf and find the #now-playing section.
-2. Extract currently-playing show slugs from cards without an open-date badge.
+1. Load https://drafthouse.com/sf and find the Now Playing section
+   (#now-playing, or .adc-listing_movies since Drafthouse dropped the id).
+2. Extract show slugs from the section's cards.
 3. Visit each /sf/show/{slug} page, select SF location, iterate date tabs,
    collect showtimes, and build MovieShowing/MovieListing objects.
 """
@@ -88,25 +89,57 @@ class AlamoScraper(WebScraper):
         ]
         print(f"  Alamo SF: scanning {len(date_buttons)} dates...")
 
-        seen: dict[str, None] = {}  # ordered set via dict
-        try:
-            section = driver.find_element(By.ID, "now-playing")
-        except NoSuchElementException:
-            return []
+        if self._find_now_playing_section(driver) is None:
+            # Raise rather than return [] so the failure shows up as a
+            # "scrape failed" line in the job log instead of a silent empty run.
+            raise RuntimeError(
+                "Alamo SF: no Now Playing section (#now-playing and "
+                ".adc-listing_movies both missing); Drafthouse markup likely changed"
+            )
 
+        seen: dict[str, None] = {}  # ordered set via dict
         for btn in date_buttons:
             driver.execute_script("arguments[0].click();", btn)
             time.sleep(1.2)
+            # Re-find the section after each click: Angular re-renders it,
+            # which would leave a stored reference stale.
+            section = self._find_now_playing_section(driver)
+            if section is None:
+                continue
             for card in section.find_elements(By.CLASS_NAME, "adc-show-card"):
                 slug = self._card_slug(card)
                 if slug:
                     seen[slug] = None
 
+        if not seen:
+            print(
+                "  WARNING: Alamo SF found 0 show slugs; card markup may have changed"
+            )
         return list(seen.keys())
 
     @staticmethod
+    def _find_now_playing_section(driver: WebDriver):
+        """Return the Now Playing card container, or None if it isn't on the page."""
+        for by, value in (
+            (By.ID, "now-playing"),
+            (By.CSS_SELECTOR, ".adc-listing_movies"),
+        ):
+            found = driver.find_elements(by, value)
+            if found:
+                return found[0]
+        return None
+
+    @staticmethod
     def _card_slug(card) -> str:
-        """Extract slug from the card's img src URL."""
+        """
+        Extract the show slug from a card's /show/{slug} or /event/{slug} link,
+        falling back to the poster image URL.
+        """
+        for link in card.find_elements(By.TAG_NAME, "a"):
+            href = link.get_attribute("href") or ""
+            m = re.search(r"/(?:show|event)/([^/?#]+)", href)
+            if m:
+                return m.group(1)
         for img in card.find_elements(By.TAG_NAME, "img"):
             src = img.get_attribute("src") or ""
             m = re.search(r"/images/shows/([^/?]+)", src)
