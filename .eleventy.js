@@ -25,6 +25,18 @@ module.exports = function(eleventyConfig) {
     return `${displayHours}:${minutes} ${period}`;
   });
 
+  // format a theater slug for display (e.g. "alamo_drafthouse_sf" -> "Alamo Drafthouse SF")
+  // title-cases each word, but keeps known acronyms fully capitalized
+  const UPPERCASE_WORDS = new Set(["sf"]);
+  eleventyConfig.addFilter("displayName", function(slug) {
+    return String(slug).split("_").map(function(word) {
+      const lower = word.toLowerCase();
+      return UPPERCASE_WORDS.has(lower)
+        ? lower.toUpperCase()
+        : lower.charAt(0).toUpperCase() + lower.slice(1);
+    }).join(" ");
+  });
+
   return {
     dir: {
       input: "spiral_hwy",
