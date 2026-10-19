@@ -482,3 +482,28 @@ a.area-link:hover {
         padding: 8px 0;
     }
 }
+
+.site-footer {
+    font-size: 0.8em;
+    color: #aaa;
+    text-align: center;
+    margin: 40px auto 20px;
+    max-width: 600px;
+}
+
+.footer-heading {
+    font-family: "ibm_mono", monospace;
+    font-size: 1em;
+    font-weight: normal;
+    margin: 1.5em 0 0.5em;
+}
+
+.footer-theaters {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-area {
+    color: #777;
+}

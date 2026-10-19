@@ -3,9 +3,54 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="Spiral HWY - San Francisco Cinema">
-        <meta name="keywords" content="Spiral HWY, San Francisco cinema, San Francisco theaters, indie films, independent theater, movie showings, San Francisco events">
-        <title>Spiral HWY</title>
+        {%- set theaters = movies | uniqueTheaters %}
+        {%- set theaterNames = "" %}
+        {%- for t in theaters %}{% set theaterNames = theaterNames ~ (", " if not loop.first else "") ~ (t.theater | displayName) %}{% endfor %}
+        {%- set description = "Daily movie showtimes for San Francisco's independent and repertory cinemas" ~ ((", including " ~ theaterNames) if theaterNames else "") ~ ". Find what's playing tonight, all in one place." %}
+        <meta name="description" content="{{ description }}">
+        <meta name="keywords" content="Spiral HWY, San Francisco cinema, San Francisco movie showtimes, SF movie theaters, indie films, independent theater, repertory cinema, movie showings, San Francisco events">
+        <title>Spiral HWY | San Francisco Indie Movie Showtimes</title>
+        <link rel="canonical" href="{{ site.url }}/">
+        <meta name="robots" content="index, follow">
+        <meta name="theme-color" content="#1f1f1f">
+
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="Spiral HWY">
+        <meta property="og:title" content="Spiral HWY | San Francisco Indie Movie Showtimes">
+        <meta property="og:description" content="{{ description }}">
+        <meta property="og:url" content="{{ site.url }}/">
+        <meta property="og:locale" content="en_US">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="Spiral HWY | San Francisco Indie Movie Showtimes">
+        <meta name="twitter:description" content="{{ description }}">
+
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Spiral HWY",
+            "alternateName": "Spiral Highway",
+            "url": "{{ site.url }}/",
+            "description": {{ description | dump | safe }},
+            "inLanguage": "en-US",
+            "about": [
+                {%- for t in theaters %}
+                {
+                    "@type": "MovieTheater",
+                    "name": {{ t.theater | displayName | dump | safe }},
+                    "url": {{ t.theater_link | dump | safe }},
+                    "hasMap": {{ t.map | dump | safe }},
+                    "address": {
+                        "@type": "PostalAddress",
+                        "addressLocality": "San Francisco",
+                        "addressRegion": "CA",
+                        "addressCountry": "US"
+                    }
+                }{% if not loop.last %},{% endif %}
+                {%- endfor %}
+            ]
+        }
+        </script>
         <link rel="stylesheet" href="styles.css">
         <script data-goatcounter="https://spiralhwy.goatcounter.com/count"
                 async src="//gc.zgo.at/count.js"></script>
@@ -45,7 +90,8 @@
             </div>
         </div>
 
-        </br>
+        <br>
+        <main>
         {% if movies %}
             {% for m in movies %}
                 <div class="sticky-wrapper" id="date-{{ m.date }}">
@@ -61,6 +107,8 @@
                                 alt="Poster for {{ movie_data.title }}"
                                 width="120"
                                 height="180"
+                                loading="lazy"
+                                decoding="async"
                             >
                         </div>
                         <div class="movie-info">
@@ -91,13 +139,33 @@
                     {% if not loop.last %}
                         <div class="divider"></div>
                     {% else %}
-                    {% for _ in range(4) %}</br>{% endfor %}  {# spacing #}
+                    {% for _ in range(4) %}<br>{% endfor %}  {# spacing #}
                     {% endif %}
                 {% endfor %}  {# movie #}
             {% endfor %}  {# date #}
         {% else %}
             <p>No movie data available</p>
         {% endif %}
+        </main>
+
+        <footer class="site-footer">
+            <p>
+                Spiral HWY collects daily movie showtimes from independent and
+                repertory cinemas across San Francisco, so you can see what's
+                playing tonight in one place.
+            </p>
+            {% if theaters | length %}
+                <h2 class="footer-heading">Theaters</h2>
+                <ul class="footer-theaters">
+                    {% for t in theaters %}
+                        <li>
+                            <a href="{{ t.theater_link }}" target="_blank" rel="noopener">{{ t.theater | displayName }}</a>
+                            <span class="footer-area">({{ t.area | replace("_", " ") | title }})</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </footer>
         <script>
         // Remove showings that have already started (in San Francisco time),
         // along with any listings, movies, and dates left empty as a result.
