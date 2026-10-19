@@ -1,6 +1,9 @@
 // .eleventy.js
 module.exports = function(eleventyConfig) {
 
+  // keep saved test fixtures (copies of theater websites) out of the published site
+  eleventyConfig.ignores.add("spiral_hwy/tests/**");
+
   // copy into public
   eleventyConfig.addPassthroughCopy({ "spiral_hwy/fonts": "fonts" });
   eleventyConfig.addPassthroughCopy({ "spiral_hwy/css/styles.css": "styles.css" });
@@ -35,6 +38,29 @@ module.exports = function(eleventyConfig) {
         ? lower.toUpperCase()
         : lower.charAt(0).toUpperCase() + lower.slice(1);
     }).join(" ");
+  });
+
+  // site-wide values used for SEO metadata, robots.txt, and sitemap.xml
+  eleventyConfig.addGlobalData("site", {
+    url: "https://www.spiralhwy.com",
+    buildDate: new Date().toISOString().slice(0, 10),
+  });
+
+  // collect the unique theaters across all listings, sorted by slug
+  eleventyConfig.addFilter("uniqueTheaters", function(movies) {
+    const theaters = new Map();
+    (movies || []).forEach(function(day) {
+      day.movies.forEach(function(movie) {
+        movie.listings.forEach(function(listing) {
+          if (!theaters.has(listing.theater)) {
+            theaters.set(listing.theater, listing);
+          }
+        });
+      });
+    });
+    return Array.from(theaters.values()).sort(function(a, b) {
+      return a.theater.localeCompare(b.theater);
+    });
   });
 
   return {
