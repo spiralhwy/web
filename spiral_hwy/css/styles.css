@@ -437,6 +437,10 @@ a.area-link:hover {
     margin: 4px 0;
 }
 
+.event-with {
+    color: #707070;
+}
+
 .event-doors {
     color: #aaa;
 }

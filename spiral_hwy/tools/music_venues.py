@@ -317,6 +317,7 @@ GREAT_AMERICAN_MUSIC_HALL = Venue(
     link="https://gamh.com/",
     area="tenderloin",
     address="859 O'Farrell St, San Francisco, CA 94109",
+    map_link="https://maps.app.goo.gl/jAubki6ZFpdcDQ4UA",
 )
 
 

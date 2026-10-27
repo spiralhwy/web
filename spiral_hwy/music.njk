@@ -90,18 +90,6 @@ permalink: /music/
                             {% endif %}
                         </div>
                         <div class="movie-info">
-                            {% if event.tagline %}<div class="event-tagline">{{ event.tagline }}</div>{% endif %}
-                            {% if event.artists | length > 1 %}
-                                <div class="event-support">
-                                    with
-                                    {% for artist in event.artists %}
-                                        {% if not loop.first %}{{ artist.name }}{% if not loop.last %},{% endif %}{% endif %}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            {% if event.artists[0] and event.artists[0].genre %}
-                                <div class="event-genre">{{ event.artists[0].genre }}</div>
-                            {% endif %}
                             <div class="theater-info">
                                 <a href="{{ event.venue_link }}" target="_blank" class="theater-name">{{ event.venue | displayName }}</a>
                                 <a href="{{ event.map }}" target="_blank" class="area-link">{{ event.area | replace("_", " ") | title }}</a>
@@ -115,11 +103,27 @@ permalink: /music/
                                        class="time {% if event.sold_out %}sold-out{% endif %}">Show {{ event.time | formatTime }}</a>
                                 </span>
                             </div>
-                            <div class="event-details">
-                                {% if event.sold_out %}<span class="event-sold-out">Sold Out</span> ·{% endif %}
-                                {{ event.age }}
-                                {% if event.price %}· {{ event.price }}{% endif %}
-                            </div>
+                            {% if event.artists | length > 1 %}
+                                <div class="event-support">
+                                    <span class="event-with">with</span>
+                                    {% for artist in event.artists %}
+                                        {% if not loop.first %}{{ artist.name }}{% if not loop.last %},{% endif %}{% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if event.tagline %}<div class="event-tagline">{{ event.tagline }}</div>{% endif %}
+                            {% if event.artists[0] and event.artists[0].genre %}
+                                <div class="event-genre">{{ event.artists[0].genre }}</div>
+                            {% endif %}
+                            {% if event.sold_out or event.age or event.price %}
+                                <div class="event-details">
+                                    {%- set details = [] %}
+                                    {%- if event.age %}{% set details = (details.push(event.age), details) %}{% endif %}
+                                    {%- if event.price %}{% set details = (details.push(event.price), details) %}{% endif %}
+                                    {% if event.sold_out %}<span class="event-sold-out">Sold Out</span>{% if details | length %} ·{% endif %}{% endif %}
+                                    {{ details | join(" · ") }}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                     {% if not loop.last %}
