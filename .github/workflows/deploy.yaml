@@ -61,8 +61,8 @@ jobs:
             echo "Not a push event"
           fi
 
-      - name: Run WebScraper
-        run: poetry run ./spiral_hwy/tools/web_scraper.py
+      - name: Run CinemaScraper
+        run: poetry run ./spiral_hwy/tools/cinema_scraper.py
 
       - name: Run MusicScraper
         run: poetry run ./spiral_hwy/tools/music_scraper.py

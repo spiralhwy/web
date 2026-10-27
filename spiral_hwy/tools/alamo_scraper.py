@@ -23,7 +23,7 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from web_scraper import MovieListing, MovieShowing, WebScraper, atomic_write_bytes
+from cinema_scraper import MovieListing, MovieShowing, CinemaScraper, atomic_write_bytes
 
 ALAMO_SF_URL = "https://drafthouse.com/sf"
 ALAMO_SF_THEATER = "alamo_drafthouse_sf"
@@ -37,9 +37,9 @@ def _extract_text(html: str) -> str:
     return re.sub(r"<[^>]+>", " ", html).strip()
 
 
-class AlamoScraper(WebScraper):
+class AlamoScraper(CinemaScraper):
     """
-    Extends WebScraper to add Alamo Drafthouse SF scraping.
+    Extends CinemaScraper to add Alamo Drafthouse SF scraping.
     Writes into the same self.listings dict so save_json works unchanged.
     """
 

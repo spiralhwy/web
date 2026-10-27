@@ -4,7 +4,7 @@ Scraper for live music listings.
 
 Each venue scraper (see music_venues.py) turns a venue's calendar into a list
 of `MusicEvent`s, a venue-agnostic representation that the music page and the
-iCalendar feed (spiral_hwy_music_calendar.ics) are both rendered from. Unlike
+iCalendar feed (music.ics) are both rendered from. Unlike
 movies, a show is only ever listed by one venue, so events are grouped by date
 without any cross-venue merging.
 
@@ -22,7 +22,7 @@ from typing import List
 
 import pytz
 import requests
-from web_scraper import atomic_write_bytes
+from cinema_scraper import atomic_write_bytes
 
 USER_AGENT = "Mozilla/5.0 (compatible; SpiralHWY/1.0; +https://www.spiralhwy.com)"
 

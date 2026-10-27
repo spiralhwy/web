@@ -87,7 +87,7 @@ module.exports = function(eleventyConfig) {
     });
   });
 
-  // iCalendar (RFC 5545) helpers for spiral_hwy_music_calendar.ics
+  // iCalendar (RFC 5545) helpers for music.ics
   // escape a TEXT value: backslash, semicolon, comma, and newlines
   eleventyConfig.addFilter("icsText", function(text) {
     return String(text || "")

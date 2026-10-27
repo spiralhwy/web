@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Web scraper to get data from movie listing website.
+Scraper for movie listings (see music_scraper.py for live music).
 """
 
 import base64
@@ -106,7 +106,7 @@ def atomic_write_bytes(path: Path, data: bytes) -> None:
 def merge_listings(dst: dict, src: dict) -> None:
     """
     Deep-merge a per-task listings dict into a master listings dict.
-    Same shape as `WebScraper.listings` before sorting:
+    Same shape as `CinemaScraper.listings` before sorting:
         {date: {title: {"poster": ..., "rating": ..., "listings": [...]}}}
     For a (date, title) seen by multiple tasks, the `listings` arrays are
     concatenated; poster/rating come from whichever task arrived first.
@@ -153,7 +153,7 @@ def get_driver() -> WebDriver:
     return driver
 
 
-class WebScraper:
+class CinemaScraper:
     """
     Class to scrape movie showing info from website.
     """
@@ -512,7 +512,7 @@ def _scrape_alamo_task() -> dict:
 def _scrape_veezi_task(website, layout: DictConfig, first_element: DictConfig) -> dict:
     driver = get_driver()
     try:
-        s = WebScraper()
+        s = CinemaScraper()
         go_to_website(driver, website.showings, first_element)
         s.scrape(driver, layout, website)
         return s.listings
@@ -533,7 +533,7 @@ def main(config: DictConfig):
     for w in config.veezi.websites:
         tasks.append((w.theater, _scrape_veezi_task, (w, layout, first_element)))
 
-    master = WebScraper()
+    master = CinemaScraper()
 
     if workers <= 1:
         for name, fn, args in tasks:

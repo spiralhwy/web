@@ -14,7 +14,7 @@ permalink: /music/
         <meta name="keywords" content="Spiral HWY, San Francisco music, SF concerts, San Francisco shows tonight, indie venues, rock clubs, San Francisco events">
         <title>Spiral HWY | San Francisco Music</title>
         <link rel="canonical" href="{{ site.url }}/music/">
-        <link rel="alternate" type="text/calendar" title="Spiral HWY Live Music" href="{{ site.url }}/spiral_hwy_music_calendar.ics">
+        <link rel="alternate" type="text/calendar" title="Spiral HWY | SF Music" href="{{ site.url }}/music.ics">
         <meta name="robots" content="index, follow">
         <meta name="theme-color" content="#1f1f1f">
 
@@ -37,7 +37,7 @@ permalink: /music/
             <h1 class="site-title">Spiral HWY</h1>
             <h2 class="site-subtitle">San Francisco Music</h2>
             <nav class="site-nav">
-                <a href="../" class="nav-cinema">Cinema</a>
+                <a href="../cinema/" class="nav-cinema">Cinema</a>
                 <span class="nav-sep">|</span>
                 <a href="./" class="nav-music" aria-current="page">Music</a>
             </nav>
@@ -46,17 +46,23 @@ permalink: /music/
         {% include "calendar.njk" %}
 
         <div id="filter-controls">
-            {#- Subscription links (not downloads): the calendar app keeps polling spiral_hwy_music_calendar.ics,
-                which is rebuilt on every deploy. -#}
+            {#- Google Calendar subscribes to music.ics (it keeps polling the URL, which is
+                rebuilt on every deploy); "Download .ics" is a one-time copy. -#}
             {%- set feedHost = site.url | replace('https://', '') %}
-            <a href="https://calendar.google.com/calendar/render?cid={{ ('webcal://' ~ feedHost ~ '/spiral_hwy_music_calendar.ics') | urlencode }}"
-               target="_blank"
-               rel="noopener"
-               class="filter-btn"
-               title="Subscribe in Google Calendar">+ Google Calendar</a>
-            <a href="webcal://{{ feedHost }}/spiral_hwy_music_calendar.ics"
-               class="filter-btn"
-               title="Subscribe in Apple Calendar, Outlook, etc.">+ Apple / Outlook</a>
+            <div id="subscribe-wrapper">
+                <button type="button" id="subscribe-btn" class="filter-btn">Calendar</button>
+                <div id="subscribe-panel">
+                    <a href="https://calendar.google.com/calendar/render?cid={{ ('webcal://' ~ feedHost ~ '/music.ics') | urlencode }}"
+                       target="_blank"
+                       rel="noopener"
+                       class="dropdown-link"
+                       title="Subscribe in Google Calendar">Google Calendar</a>
+                    <a href="../music.ics"
+                       download
+                       class="dropdown-link"
+                       title="Download the calendar file">Download .ics</a>
+                </div>
+            </div>
             <div id="theater-filter-wrapper">
                 <button type="button" id="theater-filter-btn" class="filter-btn">Venue Filter</button>
                 <div id="theater-filter-panel">
@@ -143,7 +149,7 @@ permalink: /music/
                 Spiral HWY collects live music listings from independent venues
                 across San Francisco, so you can see who's playing tonight in one place.
                 Subscribe to the calendar feed at
-                <a href="webcal://{{ site.url | replace('https://', '') }}/spiral_hwy_music_calendar.ics">{{ site.url }}/spiral_hwy_music_calendar.ics</a>
+                <a href="webcal://{{ site.url | replace('https://', '') }}/music.ics">{{ site.url }}/music.ics</a>
                 and new shows will appear in your calendar automatically.
             </p>
             {% if venues | length %}
@@ -273,6 +279,23 @@ permalink: /music/
             });
 
             applyFilter();
+        })();
+
+        (function() {
+            // Calendar dropdown: toggle on click, close on any click outside it.
+            const btn = document.getElementById('subscribe-btn');
+            const panel = document.getElementById('subscribe-panel');
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                panel.classList.toggle('open');
+                btn.classList.toggle('open');
+            });
+            document.addEventListener('click', function(e) {
+                if (!panel.contains(e.target) && e.target !== btn) {
+                    panel.classList.remove('open');
+                    btn.classList.remove('open');
+                }
+            });
         })();
 
         {% if music %}

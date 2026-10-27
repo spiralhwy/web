@@ -207,19 +207,23 @@ a.area-link:hover {
     text-align: center;
 }
 
-#theater-filter-wrapper {
+#theater-filter-wrapper,
+#subscribe-wrapper {
     position: relative;
 }
 
-#theater-filter-btn::after {
+#theater-filter-btn::after,
+#subscribe-btn::after {
     content: " \25BC";
 }
 
-#theater-filter-btn.open::after {
+#theater-filter-btn.open::after,
+#subscribe-btn.open::after {
     content: " \25B2";
 }
 
-#theater-filter-panel {
+#theater-filter-panel,
+#subscribe-panel {
     display: none;
     position: absolute;
     right: 0;
@@ -232,8 +236,21 @@ a.area-link:hover {
     white-space: nowrap;
 }
 
-#theater-filter-panel.open {
+#theater-filter-panel.open,
+#subscribe-panel.open {
     display: block;
+}
+
+/* the Calendar button is leftmost, so its panel opens rightward */
+#subscribe-panel {
+    right: auto;
+    left: 0;
+    min-width: 0;
+}
+
+.dropdown-link {
+    display: block;
+    padding: 2px 0;
 }
 
 #theater-filter-reset {

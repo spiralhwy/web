@@ -16,7 +16,7 @@ Get to great art.
 
 Run scraper locally:
 ```
-poetry run ./spiral_hwy/tools/web_scraper.py
+poetry run ./spiral_hwy/tools/cinema_scraper.py
 ```
 
 Build the project:

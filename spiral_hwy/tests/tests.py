@@ -30,9 +30,9 @@ from spiral_hwy.tools.music_venues import (
     GreatAmericanMusicHallScraper,
     IndependentScraper,
 )
-from spiral_hwy.tools.web_scraper import (
+from spiral_hwy.tools.cinema_scraper import (
     MovieShowing,
-    WebScraper,
+    CinemaScraper,
     get_driver,
     go_to_website,
 )
@@ -63,7 +63,7 @@ def test_veezi():
     poster_dir = K_TMP_TEST_DIR / "posters"
 
     # scrape websites
-    ws = WebScraper(
+    ws = CinemaScraper(
         today=datetime(year=2024, month=12, day=9), year=2024, poster_dir=poster_dir
     )
     layout: DictConfig = config.veezi.dates_list
@@ -100,7 +100,7 @@ def test_3d_title():
     - &amp; is decoded
     - Whitespace is normalized
     """
-    ws = WebScraper()
+    ws = CinemaScraper()
 
     def make_listing(title: str) -> str:
         """Push a listing through _create_listing and return the cleaned title."""
