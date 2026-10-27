@@ -11,8 +11,8 @@ permalink: /music/
         {%- for v in venues %}{% set venueNames = venueNames ~ (", " if not loop.first else "") ~ (v.venue | displayName) %}{% endfor %}
         {%- set description = "Live music listings for San Francisco's independent venues" ~ ((", including " ~ venueNames) if venueNames else "") ~ ". Find out who's playing tonight, all in one place." %}
         <meta name="description" content="{{ description }}">
-        <meta name="keywords" content="Spiral HWY, San Francisco live music, SF concerts, San Francisco shows tonight, indie venues, rock clubs, San Francisco events">
-        <title>Spiral HWY | San Francisco Live Music</title>
+        <meta name="keywords" content="Spiral HWY, San Francisco music, SF concerts, San Francisco shows tonight, indie venues, rock clubs, San Francisco events">
+        <title>Spiral HWY | San Francisco Music</title>
         <link rel="canonical" href="{{ site.url }}/music/">
         <link rel="alternate" type="text/calendar" title="Spiral HWY Live Music" href="{{ site.url }}/spiral_hwy_music_calendar.ics">
         <meta name="robots" content="index, follow">
@@ -20,12 +20,12 @@ permalink: /music/
 
         <meta property="og:type" content="website">
         <meta property="og:site_name" content="Spiral HWY">
-        <meta property="og:title" content="Spiral HWY | San Francisco Live Music">
+        <meta property="og:title" content="Spiral HWY | San Francisco Music">
         <meta property="og:description" content="{{ description }}">
         <meta property="og:url" content="{{ site.url }}/music/">
         <meta property="og:locale" content="en_US">
         <meta name="twitter:card" content="summary">
-        <meta name="twitter:title" content="Spiral HWY | San Francisco Live Music">
+        <meta name="twitter:title" content="Spiral HWY | San Francisco Music">
         <meta name="twitter:description" content="{{ description }}">
 
         <link rel="stylesheet" href="../styles.css">
@@ -35,7 +35,7 @@ permalink: /music/
     <body class="music">
         <header id="top">
             <h1 class="site-title">Spiral HWY</h1>
-            <h2 class="site-subtitle">San Francisco Live Music</h2>
+            <h2 class="site-subtitle">San Francisco Music</h2>
             <nav class="site-nav">
                 <a href="../" class="nav-cinema">Cinema</a>
                 <span class="nav-sep">|</span>

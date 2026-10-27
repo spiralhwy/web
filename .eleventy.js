@@ -32,7 +32,7 @@ module.exports = function(eleventyConfig) {
   // title-cases each word, but keeps known acronyms fully capitalized
   // and short connecting words lowercase ("bottom_of_the_hill" -> "Bottom of the Hill")
   const UPPERCASE_WORDS = new Set(["sf"]);
-  const LOWERCASE_WORDS = new Set(["of", "the", "and"]);
+  const LOWERCASE_WORDS = new Set(["of", "the", "and", "du"]);
   eleventyConfig.addFilter("displayName", function(slug) {
     return String(slug).split("_").map(function(word, i) {
       const lower = word.toLowerCase();
