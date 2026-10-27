@@ -14,7 +14,7 @@ permalink: /music/
         <meta name="keywords" content="Spiral HWY, San Francisco live music, SF concerts, San Francisco shows tonight, indie venues, rock clubs, San Francisco events">
         <title>Spiral HWY | San Francisco Live Music</title>
         <link rel="canonical" href="{{ site.url }}/music/">
-        <link rel="alternate" type="text/calendar" title="Spiral HWY Live Music" href="{{ site.url }}/music.ics">
+        <link rel="alternate" type="text/calendar" title="Spiral HWY Live Music" href="{{ site.url }}/spiral_hwy_music_calendar.ics">
         <meta name="robots" content="index, follow">
         <meta name="theme-color" content="#1f1f1f">
 
@@ -46,15 +46,15 @@ permalink: /music/
         {% include "calendar.njk" %}
 
         <div id="filter-controls">
-            {#- Subscription links (not downloads): the calendar app keeps polling music.ics,
+            {#- Subscription links (not downloads): the calendar app keeps polling spiral_hwy_music_calendar.ics,
                 which is rebuilt on every deploy. -#}
             {%- set feedHost = site.url | replace('https://', '') %}
-            <a href="https://calendar.google.com/calendar/render?cid={{ ('webcal://' ~ feedHost ~ '/music.ics') | urlencode }}"
+            <a href="https://calendar.google.com/calendar/render?cid={{ ('webcal://' ~ feedHost ~ '/spiral_hwy_music_calendar.ics') | urlencode }}"
                target="_blank"
                rel="noopener"
                class="filter-btn"
                title="Subscribe in Google Calendar">+ Google Calendar</a>
-            <a href="webcal://{{ feedHost }}/music.ics"
+            <a href="webcal://{{ feedHost }}/spiral_hwy_music_calendar.ics"
                class="filter-btn"
                title="Subscribe in Apple Calendar, Outlook, etc.">+ Apple / Outlook</a>
             <div id="theater-filter-wrapper">
@@ -139,7 +139,7 @@ permalink: /music/
                 Spiral HWY collects live music listings from independent venues
                 across San Francisco, so you can see who's playing tonight in one place.
                 Subscribe to the calendar feed at
-                <a href="webcal://{{ site.url | replace('https://', '') }}/music.ics">{{ site.url }}/music.ics</a>
+                <a href="webcal://{{ site.url | replace('https://', '') }}/spiral_hwy_music_calendar.ics">{{ site.url }}/spiral_hwy_music_calendar.ics</a>
                 and new shows will appear in your calendar automatically.
             </p>
             {% if venues | length %}

@@ -4,7 +4,7 @@ Scraper for live music listings.
 
 Each venue scraper turns a venue's calendar into a list of `MusicEvent`s, a
 venue-agnostic representation that the music page and the iCalendar feed
-(music.ics) are both rendered from. Unlike movies, a show is only ever listed
+(spiral_hwy_music_calendar.ics) are both rendered from. Unlike movies, a show is only ever listed
 by one venue, so events are grouped by date without any cross-venue merging.
 
 Output shape (spiral_hwy/_data/music.json):
