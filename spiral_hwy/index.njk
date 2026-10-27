@@ -225,6 +225,53 @@
                 }
                 toRemove.forEach(function(el) { el.remove(); });
             });
+
+            // The build sorts by each movie's first showing of the day, but today's
+            // earliest showings may have just been removed. Re-sort today's listings
+            // and movies by their earliest remaining showing.
+            const today = document.getElementById('date-' + nowDate);
+            if (!today) return;
+
+            function earliestTime(el) {
+                let earliest = Infinity;
+                el.querySelectorAll('.showtimes .time').forEach(function(t) {
+                    earliest = Math.min(earliest, parseInt(t.dataset.time, 10));
+                });
+                return earliest;
+            }
+
+            const blocks = [];
+            let sibling = today.nextElementSibling;
+            while (sibling && !sibling.classList.contains('sticky-wrapper') && sibling.tagName !== 'SCRIPT') {
+                const next = sibling.nextElementSibling;
+                if (sibling.classList.contains('movie-block')) blocks.push(sibling);
+                if (sibling.classList.contains('movie-block') || sibling.classList.contains('divider')) {
+                    sibling.remove();
+                }
+                sibling = next;
+            }
+
+            blocks.forEach(function(block) {
+                const info = block.querySelector('.movie-info');
+                Array.from(info.querySelectorAll('.theater-info'))
+                    .sort(function(a, b) { return earliestTime(a) - earliestTime(b); })
+                    .forEach(function(listing) { info.appendChild(listing); });
+            });
+
+            // Array.prototype.sort is stable, so ties keep the build's order.
+            blocks.sort(function(a, b) { return earliestTime(a) - earliestTime(b); });
+
+            let anchor = today;
+            blocks.forEach(function(block, i) {
+                if (i > 0) {
+                    const divider = document.createElement('div');
+                    divider.className = 'divider';
+                    anchor.after(divider);
+                    anchor = divider;
+                }
+                anchor.after(block);
+                anchor = block;
+            });
         })();
 
             const header = document.getElementById('top');
