@@ -46,8 +46,8 @@ permalink: /music/
         {% include "calendar.njk" %}
 
         <div id="filter-controls">
-            {#- Google Calendar subscribes to music.ics (it keeps polling the URL, which is
-                rebuilt on every deploy); "Download .ics" is a one-time copy. -#}
+            {#- Subscription links, not downloads: the calendar app keeps polling music.ics,
+                which is rebuilt on every deploy. -#}
             {%- set feedHost = site.url | replace('https://', '') %}
             <div id="subscribe-wrapper">
                 <button type="button" id="subscribe-btn" class="filter-btn">Calendar</button>
@@ -57,10 +57,9 @@ permalink: /music/
                        rel="noopener"
                        class="dropdown-link"
                        title="Subscribe in Google Calendar">Google Calendar</a>
-                    <a href="../music.ics"
-                       download
+                    <a href="webcal://{{ feedHost }}/music.ics"
                        class="dropdown-link"
-                       title="Download the calendar file">Download .ics</a>
+                       title="Subscribe in Apple Calendar, Outlook, etc.">Apple / Outlook</a>
                 </div>
             </div>
             <div id="theater-filter-wrapper">
