@@ -80,10 +80,13 @@ class Venue:
     link: str
     area: str
     address: str
+    map_link: str = ""  # Google Maps share link; defaults to an address search
 
     @property
     def map(self) -> str:
-        return "https://maps.google.com/?q=" + self.address.replace(" ", "+")
+        return self.map_link or (
+            "https://maps.google.com/?q=" + self.address.replace(" ", "+")
+        )
 
     def event(self, date: str, time: str, title: str, **kwargs) -> MusicEvent:
         """Build a MusicEvent at this venue."""

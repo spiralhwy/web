@@ -53,6 +53,7 @@ BOTTOM_OF_THE_HILL = Venue(
     link="https://www.bottomofthehill.com/",
     area="potrero_hill",
     address="1233 17th St, San Francisco, CA 94107",
+    map_link="https://maps.app.goo.gl/7N3FiwEQgFQ75nit5",
 )
 
 
@@ -220,6 +221,7 @@ THE_INDEPENDENT = Venue(
     link="https://www.theindependentsf.com/",
     area="western_addition",
     address="628 Divisadero St, San Francisco, CA 94117",
+    map_link="https://maps.app.goo.gl/XdbVBeLgAVTwJkD99",
 )
 
 
@@ -411,6 +413,7 @@ CAFE_DU_NORD = Venue(
     link="https://cafedunord.com/",
     area="castro",
     address="2170 Market St, San Francisco, CA 94114",
+    map_link="https://maps.app.goo.gl/39WYLg6EuhLTs2a66",
 )
 
 # Upstairs, same building and calendar; listed as its own venue.
@@ -419,6 +422,7 @@ SWEDISH_AMERICAN_HALL = Venue(
     link="https://cafedunord.com/",
     area="castro",
     address="2174 Market St, San Francisco, CA 94114",
+    map_link="https://maps.app.goo.gl/2YfxU6CWYVRycAns9",
 )
 
 
