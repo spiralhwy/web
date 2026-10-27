@@ -9,8 +9,8 @@
 }
 
 @font-face {
-    font-family: trickster;
-    src: url("./fonts/trickster/Trickster-Regular.otf") format("opentype");
+    font-family: gulax;
+    src: url("./fonts/gulax/Gulax-Regular.otf") format("opentype");
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -145,7 +145,7 @@ a.area-link:hover {
 }
 
 .music .site-title {
-    font-family: trickster, anthony, serif;
+    font-family: gulax, anthony, serif;
 }
 
 .site-nav {
