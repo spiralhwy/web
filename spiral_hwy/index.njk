@@ -59,25 +59,14 @@
         <header id="top">
             <h1 class="site-title">Spiral HWY</h1>
             <h2 class="site-subtitle">San Francisco Cinema</h2>
+            <nav class="site-nav">
+                <a href="./" class="nav-cinema" aria-current="page">Cinema</a>
+                <span class="nav-sep">|</span>
+                <a href="music/" class="nav-music">Music</a>
+            </nav>
         </header>
 
-        <div id="calendar">
-            <div class="cal-header">
-                <button id="cal-prev" class="cal-nav">&lt;</button>
-                <span id="cal-month-label" class="cal-month-label"></span>
-                <button id="cal-next" class="cal-nav">&gt;</button>
-            </div>
-            <div class="cal-grid">
-                <span class="cal-dow">Su</span>
-                <span class="cal-dow">Mo</span>
-                <span class="cal-dow">Tu</span>
-                <span class="cal-dow">We</span>
-                <span class="cal-dow">Th</span>
-                <span class="cal-dow">Fr</span>
-                <span class="cal-dow">Sa</span>
-            </div>
-            <div id="cal-days" class="cal-grid"></div>
-        </div>
+        {% include "calendar.njk" %}
 
         <div id="filter-controls">
             <button type="button" id="indie-mode-btn" class="filter-btn">Indie Mode</button>
@@ -274,55 +263,7 @@
             });
         })();
 
-            const header = document.getElementById('top');
-            const wrappers = document.querySelectorAll('.sticky-wrapper');
-            const headerObserver = new IntersectionObserver(([entry]) => {
-                const pastHeader = !entry.isIntersecting;
-                wrappers.forEach(w => w.classList.toggle('past-header', pastHeader));
-            });
-            headerObserver.observe(header);
-
-            let currentStuck = null;
-            let scrollTarget = null;
-            const stickyObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    entry.target.classList.toggle('stuck', entry.intersectionRatio < 1);
-                });
-            }, { threshold: 1, rootMargin: '-1px 0px 0px 0px' });
-            wrappers.forEach(w => stickyObserver.observe(w));
-
-            window.addEventListener('scroll', function() {
-                // find the last wrapper (in DOM order) whose natural position
-                // has scrolled to or past the viewport top — that's the visible sticky header
-                let active = null;
-                wrappers.forEach(w => {
-                    if (w.offsetTop <= window.scrollY) {
-                        active = w;
-                    }
-                });
-                if (!active) {
-                    currentStuck = null;
-                } else if (active !== currentStuck) {
-                    currentStuck = active;
-                    if (!scrollTarget) {
-                        active.classList.remove('flash');
-                        void active.offsetWidth;
-                        active.classList.add('flash');
-                    }
-                }
-            });
-
-            document.querySelectorAll('.top-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    scrollTarget = true; // suppress flash during scroll
-                    window.addEventListener('scrollend', function clear() {
-                        window.removeEventListener('scrollend', clear);
-                        scrollTarget = null;
-                    });
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                });
-            });
+        {% include "sticky_dates.js" %}
         (function() {
             const corporate = ['alamo_drafthouse_sf', 'landmark_opera_plaza'];
 
@@ -442,118 +383,8 @@
             applyFilter();
         })();
 
-        (function() {
-            const dates = [{% for m in movies %}"{{ m.date }}"{% if not loop.last %},{% endif %}{% endfor %}];
-            // Only link dates that still have upcoming showings on the page.
-            const dateSet = new Set(dates.filter(function(d) {
-                return document.getElementById('date-' + d);
-            }));
-
-            const firstDate = dates[0];
-            const lastDate = dates[dates.length - 1];
-            const firstMonth = new Date(firstDate.replace(/-/g, '/'));
-            firstMonth.setDate(1);
-            const lastMonth = new Date(lastDate.replace(/-/g, '/'));
-            lastMonth.setDate(1);
-
-            // build list of months to render (first to last, inclusive)
-            const months = [];
-            const cursor = new Date(firstMonth);
-            while (cursor <= lastMonth) {
-                months.push(new Date(cursor));
-                cursor.setMonth(cursor.getMonth() + 1);
-            }
-
-            let currentIdx = 0;
-            // start on the month containing today if possible
-            const today = new Date();
-            const todayStr = today.getFullYear() + '-' +
-                String(today.getMonth() + 1).padStart(2, '0') + '-' +
-                String(today.getDate()).padStart(2, '0');
-            for (let i = 0; i < months.length; i++) {
-                if (today.getFullYear() === months[i].getFullYear() &&
-                    today.getMonth() === months[i].getMonth()) {
-                    currentIdx = i;
-                    break;
-                }
-            }
-
-            const monthNames = ['January','February','March','April','May','June',
-                                'July','August','September','October','November','December'];
-            const label = document.getElementById('cal-month-label');
-            const daysEl = document.getElementById('cal-days');
-            const prevBtn = document.getElementById('cal-prev');
-            const nextBtn = document.getElementById('cal-next');
-
-            function pad(n) { return String(n).padStart(2, '0'); }
-
-            function render() {
-                const m = months[currentIdx];
-                const year = m.getFullYear();
-                const month = m.getMonth();
-                label.textContent = monthNames[month] + ' ' + year;
-
-                // prev/next visibility
-                prevBtn.style.visibility = currentIdx === 0 ? 'hidden' : 'visible';
-                nextBtn.style.visibility = currentIdx === months.length - 1 ? 'hidden' : 'visible';
-
-                // build days
-                const firstDow = new Date(year, month, 1).getDay();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-                let html = '';
-                // blank cells for offset
-                for (let i = 0; i < firstDow; i++) {
-                    html += '<span class="cal-day"></span>';
-                }
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const ds = year + '-' + pad(month + 1) + '-' + pad(d);
-                    const hasListings = dateSet.has(ds);
-                    const isToday = ds === todayStr;
-                    let cls = 'cal-day';
-                    if (hasListings) cls += ' cal-day-active';
-                    else cls += ' cal-day-inactive';
-                    if (isToday) cls += ' cal-day-today';
-                    if (hasListings) {
-                        html += '<a href="#date-' + ds + '" class="' + cls + '">' + d + '</a>';
-                    } else {
-                        html += '<span class="' + cls + '">' + d + '</span>';
-                    }
-                }
-                daysEl.innerHTML = html;
-
-                // smooth scroll on click
-                daysEl.querySelectorAll('a.cal-day-active').forEach(function(el) {
-                    el.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        var target = document.querySelector(el.getAttribute('href'));
-                        if (target) {
-                            scrollTarget = target;
-                            function onScrollEnd() {
-                                window.removeEventListener('scrollend', onScrollEnd);
-                                if (scrollTarget) {
-                                    scrollTarget.classList.remove('flash');
-                                    void scrollTarget.offsetWidth;
-                                    scrollTarget.classList.add('flash');
-                                    scrollTarget = null;
-                                }
-                            }
-                            window.addEventListener('scrollend', onScrollEnd);
-                            target.scrollIntoView({ behavior: 'smooth' });
-                        }
-                    });
-                });
-            }
-
-            prevBtn.addEventListener('click', function() {
-                if (currentIdx > 0) { currentIdx--; render(); }
-            });
-            nextBtn.addEventListener('click', function() {
-                if (currentIdx < months.length - 1) { currentIdx++; render(); }
-            });
-
-            render();
-        })();
+        {% set calendarDates = movies | pluck("date") %}
+        {% include "calendar.js" %}
         </script>
     </body>
 </html>

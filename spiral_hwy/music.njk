@@ -1,0 +1,284 @@
+---
+permalink: /music/
+---
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {%- set venues = music | uniqueVenues %}
+        {%- set venueNames = "" %}
+        {%- for v in venues %}{% set venueNames = venueNames ~ (", " if not loop.first else "") ~ (v.venue | displayName) %}{% endfor %}
+        {%- set description = "Live music listings for San Francisco's independent venues" ~ ((", including " ~ venueNames) if venueNames else "") ~ ". Find out who's playing tonight, all in one place." %}
+        <meta name="description" content="{{ description }}">
+        <meta name="keywords" content="Spiral HWY, San Francisco music, SF concerts, San Francisco shows tonight, indie venues, rock clubs, San Francisco events">
+        <title>Spiral HWY | San Francisco Music</title>
+        <link rel="canonical" href="{{ site.url }}/music/">
+        <link rel="alternate" type="text/calendar" title="Spiral HWY Live Music" href="{{ site.url }}/spiral_hwy_music_calendar.ics">
+        <meta name="robots" content="index, follow">
+        <meta name="theme-color" content="#1f1f1f">
+
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="Spiral HWY">
+        <meta property="og:title" content="Spiral HWY | San Francisco Music">
+        <meta property="og:description" content="{{ description }}">
+        <meta property="og:url" content="{{ site.url }}/music/">
+        <meta property="og:locale" content="en_US">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="Spiral HWY | San Francisco Music">
+        <meta name="twitter:description" content="{{ description }}">
+
+        <link rel="stylesheet" href="../styles.css">
+        <script data-goatcounter="https://spiralhwy.goatcounter.com/count"
+                async src="//gc.zgo.at/count.js"></script>
+    </head>
+    <body class="music">
+        <header id="top">
+            <h1 class="site-title">Spiral HWY</h1>
+            <h2 class="site-subtitle">San Francisco Music</h2>
+            <nav class="site-nav">
+                <a href="../" class="nav-cinema">Cinema</a>
+                <span class="nav-sep">|</span>
+                <a href="./" class="nav-music" aria-current="page">Music</a>
+            </nav>
+        </header>
+
+        {% include "calendar.njk" %}
+
+        <div id="filter-controls">
+            {#- Subscription links (not downloads): the calendar app keeps polling spiral_hwy_music_calendar.ics,
+                which is rebuilt on every deploy. -#}
+            {%- set feedHost = site.url | replace('https://', '') %}
+            <a href="https://calendar.google.com/calendar/render?cid={{ ('webcal://' ~ feedHost ~ '/spiral_hwy_music_calendar.ics') | urlencode }}"
+               target="_blank"
+               rel="noopener"
+               class="filter-btn"
+               title="Subscribe in Google Calendar">+ Google Calendar</a>
+            <a href="webcal://{{ feedHost }}/spiral_hwy_music_calendar.ics"
+               class="filter-btn"
+               title="Subscribe in Apple Calendar, Outlook, etc.">+ Apple / Outlook</a>
+            <div id="theater-filter-wrapper">
+                <button type="button" id="theater-filter-btn" class="filter-btn">Venue Filter</button>
+                <div id="theater-filter-panel">
+                    <a href="#" id="theater-filter-reset">Reset</a>
+                    <div id="theater-filter-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <main>
+        {% if music %}
+            {% for day in music %}
+                <div class="sticky-wrapper" id="date-{{ day.date }}">
+                    <div class="date">{{ day.date | formatDate }}</div>
+                    <a href="#" class="top-btn" aria-label="Back to top">↑</a>
+                </div>
+                {% for event in day.events %}
+                    <div class="movie-block event-block" data-venue="{{ event.venue }}" data-date="{{ day.date }}">
+                        <h2 class="movie-title">
+                            <a href="{{ event.link }}" target="_blank">{{ event.title }}</a>
+                        </h2>
+                        <div class="poster-container">
+                            {% if event.image %}
+                                <img src="../{{ event.image }}"
+                                     alt="Flyer for {{ event.title }}"
+                                     width="120"
+                                     height="180"
+                                     loading="lazy"
+                                     decoding="async">
+                            {% endif %}
+                        </div>
+                        <div class="movie-info">
+                            <div class="theater-info">
+                                <a href="{{ event.venue_link }}" target="_blank" class="theater-name">{{ event.venue | displayName }}</a>
+                                <a href="{{ event.map }}" target="_blank" class="area-link">{{ event.area | replace("_", " ") | title }}</a>
+                                <span class="showtimes">
+                                    {% if event.doors %}
+                                        <span class="event-doors">Doors {{ event.doors | formatTime }}</span>
+                                        <span class="time-sep">|</span>
+                                    {% endif %}
+                                    <a href="{{ event.ticket_link or event.link }}"
+                                       target="_blank"
+                                       class="time {% if event.sold_out %}sold-out{% endif %}">Show {{ event.time | formatTime }}</a>
+                                </span>
+                            </div>
+                            {% if event.artists | length > 1 %}
+                                <div class="event-support">
+                                    <span class="event-with">with</span>
+                                    {% for artist in event.artists %}
+                                        {% if not loop.first %}{{ artist.name }}{% if not loop.last %},{% endif %}{% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if event.tagline %}<div class="event-tagline">{{ event.tagline }}</div>{% endif %}
+                            {% if event.artists[0] and event.artists[0].genre %}
+                                <div class="event-genre">{{ event.artists[0].genre }}</div>
+                            {% endif %}
+                            {% if event.sold_out or event.age or event.price %}
+                                <div class="event-details">
+                                    {%- set details = [] %}
+                                    {%- if event.age %}{% set details = (details.push(event.age), details) %}{% endif %}
+                                    {%- if event.price %}{% set details = (details.push(event.price), details) %}{% endif %}
+                                    {% if event.sold_out %}<span class="event-sold-out">Sold Out</span>{% if details | length %} ·{% endif %}{% endif %}
+                                    {{ details | join(" · ") }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if not loop.last %}
+                        <div class="divider"></div>
+                    {% else %}
+                        {% for _ in range(4) %}<br>{% endfor %}  {# spacing #}
+                    {% endif %}
+                {% endfor %}  {# event #}
+            {% endfor %}  {# date #}
+        {% else %}
+            <p>No music data available</p>
+        {% endif %}
+        </main>
+
+        <footer class="site-footer">
+            <p>
+                Spiral HWY collects live music listings from independent venues
+                across San Francisco, so you can see who's playing tonight in one place.
+                Subscribe to the calendar feed at
+                <a href="webcal://{{ site.url | replace('https://', '') }}/spiral_hwy_music_calendar.ics">{{ site.url }}/spiral_hwy_music_calendar.ics</a>
+                and new shows will appear in your calendar automatically.
+            </p>
+            {% if venues | length %}
+                <h2 class="footer-heading">Venues</h2>
+                <ul class="footer-theaters">
+                    {% for v in venues %}
+                        <li>
+                            <a href="{{ v.venue_link }}" target="_blank" rel="noopener">{{ v.venue | displayName }}</a>
+                            <span class="footer-area">({{ v.area | replace("_", " ") | title }})</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </footer>
+        <script>
+        // Remove shows from earlier dates (in San Francisco time), along with
+        // any dates left empty. Tonight's shows stay up all night.
+        (function() {
+            const parts = {};
+            new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/Los_Angeles',
+                year: 'numeric', month: '2-digit', day: '2-digit'
+            }).formatToParts(new Date()).forEach(function(p) { parts[p.type] = p.value; });
+            const nowDate = parts.year + '-' + parts.month + '-' + parts.day;
+
+            document.querySelectorAll('.event-block').forEach(function(block) {
+                if (block.dataset.date >= nowDate) return;
+                const next = block.nextElementSibling;
+                if (next && next.classList.contains('divider')) next.remove();
+                block.remove();
+            });
+
+            document.querySelectorAll('.sticky-wrapper').forEach(function(wrapper) {
+                const toRemove = [wrapper];
+                let sibling = wrapper.nextElementSibling;
+                while (sibling && !sibling.classList.contains('sticky-wrapper')) {
+                    if (sibling.classList.contains('event-block')) return;
+                    toRemove.push(sibling);
+                    sibling = sibling.nextElementSibling;
+                }
+                toRemove.forEach(function(el) { el.remove(); });
+            });
+        })();
+
+        {% include "sticky_dates.js" %}
+        (function() {
+            // Discover all venues from the rendered events.
+            const venues = new Map();
+            document.querySelectorAll('.event-block').forEach(function(el) {
+                const slug = el.dataset.venue;
+                if (!venues.has(slug)) {
+                    const nameEl = el.querySelector('.theater-name');
+                    venues.set(slug, nameEl ? nameEl.textContent.trim() : slug);
+                }
+            });
+            const allSlugs = Array.from(venues.keys()).sort(function(a, b) {
+                return venues.get(a).localeCompare(venues.get(b));
+            });
+            const selected = new Set();
+
+            const filterBtn = document.getElementById('theater-filter-btn');
+            const filterPanel = document.getElementById('theater-filter-panel');
+            const filterList = document.getElementById('theater-filter-list');
+            const resetLink = document.getElementById('theater-filter-reset');
+
+            allSlugs.forEach(function(slug) {
+                const label = document.createElement('label');
+                label.className = 'theater-filter-option';
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.dataset.venue = slug;
+                cb.addEventListener('change', function() {
+                    if (cb.checked) selected.add(slug);
+                    else selected.delete(slug);
+                    applyFilter();
+                });
+                label.appendChild(cb);
+                label.appendChild(document.createTextNode(' ' + venues.get(slug)));
+                filterList.appendChild(label);
+            });
+
+            function applyFilter() {
+                // Empty selection means show all; otherwise show only the selected.
+                const showAll = selected.size === 0;
+                document.querySelectorAll('.event-block').forEach(function(block) {
+                    const visible = showAll || selected.has(block.dataset.venue);
+                    block.style.display = visible ? '' : 'none';
+                    const next = block.nextElementSibling;
+                    if (next && next.classList.contains('divider')) {
+                        next.style.display = visible ? '' : 'none';
+                    }
+                });
+                document.querySelectorAll('.sticky-wrapper').forEach(function(wrapper) {
+                    let sibling = wrapper.nextElementSibling;
+                    let anyVisible = false;
+                    while (sibling && !sibling.classList.contains('sticky-wrapper')) {
+                        if (sibling.classList.contains('event-block') && sibling.style.display !== 'none') {
+                            anyVisible = true;
+                            break;
+                        }
+                        sibling = sibling.nextElementSibling;
+                    }
+                    wrapper.style.display = anyVisible ? '' : 'none';
+                });
+            }
+
+            resetLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                selected.clear();
+                filterList.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+                    cb.checked = false;
+                });
+                applyFilter();
+            });
+
+            filterBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                filterPanel.classList.toggle('open');
+                filterBtn.classList.toggle('open');
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!filterPanel.contains(e.target) && e.target !== filterBtn) {
+                    filterPanel.classList.remove('open');
+                    filterBtn.classList.remove('open');
+                }
+            });
+
+            applyFilter();
+        })();
+
+        {% if music %}
+            {% set calendarDates = music | pluck("date") %}
+            {% include "calendar.js" %}
+        {% endif %}
+        </script>
+    </body>
+</html>

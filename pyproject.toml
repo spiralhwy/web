@@ -18,6 +18,7 @@ djlint = "^1.36.1"
 pytest = "^8.3.4"
 isort = "^5.13.2"
 pytz = "^2024.2"
+beautifulsoup4 = "^4.12"
 
 [tool.poetry.group.dev.dependencies]
 poethepoet = "^0.31.0"

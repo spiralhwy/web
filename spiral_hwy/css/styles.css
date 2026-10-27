@@ -9,6 +9,14 @@
 }
 
 @font-face {
+    font-family: gulax;
+    src: url("./fonts/gulax/Gulax-Regular.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
     font-family: "ibm_mono";
     src: url("./fonts/ibm_mono/IBMPlexMono-Regular.ttf") format("truetype");
     font-weight: normal;
@@ -23,6 +31,17 @@
     font-weight: normal;
     font-style: normal;
     font-display: swap;
+}
+
+/* Hover/highlight color: red for cinema, green for music */
+:root {
+    --accent: #f00;
+    --accent-cinema: #f00;
+    --accent-music: #abff00;
+}
+
+body.music {
+    --accent: var(--accent-music);
 }
 
 body {
@@ -43,7 +62,7 @@ a {
 }
 
 a:hover {
-    color: #f00;
+    color: var(--accent);
 }
 
 a.area-link {
@@ -52,7 +71,7 @@ a.area-link {
 }
 
 a.area-link:hover {
-    color: #f00;
+    color: var(--accent);
 }
 
 .date {
@@ -125,6 +144,34 @@ a.area-link:hover {
     margin-bottom: 0.33em;
 }
 
+.music .site-title {
+    font-family: gulax, anthony, serif;
+}
+
+.site-nav {
+    text-align: center;
+    font-size: 0.9em;
+}
+
+/* Each section's nav link keeps its own color, whichever page you're on */
+.site-nav a.nav-cinema:hover {
+    color: var(--accent-cinema);
+}
+
+.site-nav a.nav-music:hover {
+    color: var(--accent-music);
+}
+
+.site-nav a[aria-current="page"] {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.nav-sep {
+    color: #707070;
+    margin: 0 6px;
+}
+
 #filter-controls {
     margin: 16px auto 0;
     display: flex;
@@ -149,8 +196,8 @@ a.area-link:hover {
 }
 
 .filter-btn:hover {
-    color: #f00;
-    border-color: #f00;
+    color: var(--accent);
+    border-color: var(--accent);
 }
 
 #indie-mode-btn {
@@ -199,7 +246,7 @@ a.area-link:hover {
 }
 
 #theater-filter-reset:hover {
-    color: #f00;
+    color: var(--accent);
 }
 
 .theater-filter-option {
@@ -209,7 +256,7 @@ a.area-link:hover {
 }
 
 .theater-filter-option:hover {
-    color: #f00;
+    color: var(--accent);
 }
 
 .theater-filter-option input {
@@ -247,7 +294,7 @@ a.area-link:hover {
 }
 
 .cal-nav:hover {
-    color: #f00;
+    color: var(--accent);
 }
 
 .cal-grid {
@@ -288,7 +335,7 @@ a.area-link:hover {
 }
 
 .cal-day-active:hover {
-    color: #f00;
+    color: var(--accent);
 }
 
 .cal-day-today {
@@ -320,7 +367,7 @@ a.area-link:hover {
 }
 
 .top-btn:hover {
-    color: #f00;
+    color: var(--accent);
 }
 
 .sticky-wrapper.past-header.stuck .top-btn {
@@ -352,7 +399,7 @@ a.area-link:hover {
 }
 
 @keyframes text-flash {
-    0%   { color: #f00; }
+    0%   { color: var(--accent); }
     100% { color: #fff; }
 }
 
@@ -375,6 +422,31 @@ a.area-link:hover {
 
 .time {
     white-space: nowrap;
+}
+
+/* Music events (layout shared with .movie-block) */
+
+.event-tagline,
+.event-genre,
+.event-details {
+    color: #aaa;
+    font-size: 0.9em;
+}
+
+.event-support {
+    margin: 4px 0;
+}
+
+.event-with {
+    color: #707070;
+}
+
+.event-doors {
+    color: #aaa;
+}
+
+.event-sold-out {
+    color: var(--accent);
 }
 
 .time.sold-out {

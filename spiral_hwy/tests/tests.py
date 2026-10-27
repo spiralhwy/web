@@ -15,6 +15,21 @@ from selenium.webdriver.common.by import By
 
 from spiral_hwy.tools.alamo_scraper import AlamoScraper
 from spiral_hwy.tools.landmark_scraper import LandmarkScraper
+from spiral_hwy.tools.music_scraper import (
+    MusicEvent,
+    _normalize_age,
+    _parse_12h_time,
+    _split_lineup,
+    dedupe,
+    group_by_date,
+    infer_date,
+)
+from spiral_hwy.tools.music_venues import (
+    BottomOfTheHillScraper,
+    CafeDuNordScraper,
+    GreatAmericanMusicHallScraper,
+    IndependentScraper,
+)
 from spiral_hwy.tools.web_scraper import (
     MovieShowing,
     WebScraper,
@@ -352,3 +367,223 @@ def test_landmark():
 
     finally:
         driver.quit()
+
+
+def test_bottom_of_the_hill():
+    """
+    Test Bottom of the Hill calendar parsing against a saved copy of
+    https://www.bottomofthehill.com/calendar.html (fetched 2026-10-27).
+    """
+    assert _parse_12h_time("7:00PM") == "1900"
+    assert _parse_12h_time("12:30am") == "0030"
+    assert _parse_12h_time("13:00PM") is None
+    assert _parse_12h_time("7 PM") == "1900"
+    assert _normalize_age("\u2022\u2022\u2022 21 AND OVER") == "21+"
+    assert _normalize_age("\u2022\u2022\u2022\xa0 ALL AGES") == "All Ages"
+    assert _normalize_age("all-ages") == "All Ages"
+    assert _normalize_age("21+") == "21+"
+
+    fixture = (
+        Path(__file__).parent / "websites" / "bottom_of_the_hill" / "calendar.html"
+    )
+    events = BottomOfTheHillScraper.parse(fixture.read_text(encoding="iso-8859-1"))
+    by_date = {e.date: e for e in events}
+
+    # 50 shows listed; 11/1 and 11/3 are CLOSED (cancelled) and dropped
+    assert len(events) == 48
+    assert "2026-11-01" not in by_date and "2026-11-03" not in by_date
+    assert len({e.id for e in events}) == len(events)
+
+    # Typical show: doors/show times, tagline, lineup with genres, links
+    e = by_date["2026-10-28"]
+    assert e.id == "bottom_of_the_hill-20261028-2000"
+    assert (e.doors, e.time) == ("1900", "2000")
+    assert e.title == "Slothrust"
+    assert e.tagline == "The Dystopian Theatre Tour"
+    assert [(a.name, a.genre) for a in e.artists] == [
+        ("Slothrust", "rock, grunge, garage"),
+        ("Um, Jennifer?", "pop rock punk"),
+    ]
+    assert e.age == "All Ages"
+    assert e.price == "$25 in advance / $28 at the door"
+    assert (
+        e.ticket_link == "https://www.bottomofthehill.com/stubmatic/event20261028.html"
+    )
+    assert e.link == "https://www.bottomofthehill.com/20261028.html"
+    assert e.image == "https://www.bottomofthehill.com/f/20261027and28fs.jpg"
+    assert not e.sold_out
+
+    # Date comes from the text, not the (stale) "20261212" anchor
+    assert by_date["2026-12-13"].title == "El Vez & the Centuries"
+    assert by_date["2026-12-12"].title == "Hot Lunch"
+
+    # Sold out: no ticket button; DJ "/ Name" prefix stripped
+    e = by_date["2026-11-13"]
+    assert e.sold_out and e.ticket_link == ""
+    assert [a.name for a in e.artists][-1] == "Mike Gabriel"
+    assert sum(e.sold_out for e in events) == 13
+
+    # "TBA" placeholders and "... and more" aren't artists
+    assert [a.name for a in by_date["2026-12-01"].artists] == ["Fat, Evil Children"]
+    assert "... and more" not in [a.name for a in by_date["2026-12-26"].artists]
+
+    # Bracketed notes are dropped from the price
+    assert by_date["2026-11-12"].price == "$17 in advance / $20 at the door"
+
+    # Grouped by date, sorted by start time within a date
+    grouped = group_by_date(
+        [
+            MusicEvent("b", "v", "", "", "", "", "2026-01-02", "2000", "B"),
+            MusicEvent("c", "v", "", "", "", "", "2026-01-01", "2100", "C"),
+            MusicEvent("a", "v", "", "", "", "", "2026-01-01", "1900", "A"),
+        ]
+    )
+    assert [(d["date"], [e.id for e in d["events"]]) for d in grouped] == [
+        ("2026-01-01", ["a", "c"]),
+        ("2026-01-02", ["b"]),
+    ]
+
+
+def test_music_helpers():
+    """
+    Test shared music helpers: year inference, lineup splitting, dedupe.
+    """
+    today = datetime(2026, 10, 27).date()
+    assert infer_date(10, 28, today) == "2026-10-28"
+    assert infer_date(10, 26, today) == "2026-10-26"  # yesterday still counts
+    assert infer_date(10, 25, today) == "2027-10-25"
+    assert infer_date(1, 15, today) == "2027-01-15"
+    assert infer_date(2, 29, today) == "2028-02-29" or infer_date(2, 29, today) is None
+    assert infer_date(13, 1, today) is None
+
+    assert _split_lineup("with Houses of Heaven, False Figure, a.cold.era") == [
+        "Houses of Heaven",
+        "False Figure",
+        "a.cold.era",
+    ]
+    assert _split_lineup("") == []
+
+    a = MusicEvent("x", "v", "", "", "", "", "2026-01-01", "2000", "A")
+    b = MusicEvent("x", "v", "", "", "", "", "2026-01-01", "2000", "B")
+    assert [e.title for e in dedupe([a, b])] == ["A"]
+
+
+def test_the_independent():
+    """
+    Test The Independent (TicketWeb plugin) parsing against a saved copy of
+    https://www.theindependentsf.com/ (fetched 2026-10-27; dates have no year).
+    """
+    fixture = Path(__file__).parent / "websites" / "the_independent" / "home.html"
+    events = IndependentScraper.parse(
+        fixture.read_text(encoding="utf-8"), today=datetime(2026, 10, 27).date()
+    )
+    by_title = {e.title: e for e in events}
+
+    # 98 listed: 2 postponed, 1 moved to the Castro, 1 two-day pass dropped
+    assert len(events) == 94
+    assert len({e.id for e in events}) == len(events)
+    assert not any("POSTPONED" in e.title or "MOVED" in e.title for e in events)
+    assert "Two Gallants: Two-Day Pass" not in by_title
+
+    e = by_title["Freak Slug"]
+    assert e.id == "the_independent-20261028-2000"
+    assert e.tagline == "AMULET TOUR NA"
+    assert [a.name for a in e.artists] == ["Freak Slug", "Mamalarky"]
+    assert e.link == "https://www.theindependentsf.com/tm-event/freak-slug/"
+    assert e.ticket_link.startswith("https://www.ticketweb.com/event/freak-slug-")
+    assert e.image.startswith("https://i.ticketweb.com/")
+
+    # Multiple support acts, one per <span>
+    assert [a.name for a in by_title["The Wldlfe"].artists] == [
+        "The Wldlfe",
+        "Landon Conrath",
+        "brendon b",
+    ]
+
+    # Year rolls over for early-2027 dates (a two-night run)
+    assert [e.date for e in events if e.title == "Two Gallants"] == [
+        "2027-02-10",
+        "2027-02-11",
+    ]
+
+    # Sold out via the button class ("Sold Out!") or its text ("SOLD OUT")
+    assert sum(e.sold_out for e in events) == 5
+
+    # TicketWeb's placeholder image isn't used as a flyer
+    assert by_title["Thievery Corporation"].image == ""
+
+
+def test_great_american_music_hall():
+    """
+    Test Great American Music Hall (SeeTickets month grids) parsing against a
+    saved copy of https://gamh.com/calendar/ (fetched 2026-10-27).
+    """
+    fixture = (
+        Path(__file__).parent
+        / "websites"
+        / "great_american_music_hall"
+        / "calendar.html"
+    )
+    events = GreatAmericanMusicHallScraper.parse(fixture.read_text(encoding="utf-8"))
+    by_title = {e.title: e for e in events}
+
+    # 66 listed, minus a 3-show pass and a 2-day pass
+    assert len(events) == 64
+    assert len({e.id for e in events}) == len(events)
+    assert not any("pass" in e.title.lower() for e in events)
+
+    e = by_title["Cold Cave (solo), SRSQ"]
+    assert e.date == "2026-10-30"
+    assert (e.doors, e.time) == ("1800", "1830")
+    assert [a.name for a in e.artists] == [
+        "Cold Cave (solo), SRSQ",
+        "Houses of Heaven",
+        "False Figure",
+        "a.cold.era",
+    ]
+    assert e.ticket_link.startswith("https://wl.seetickets.us/event/cold-cave-")
+
+    # Date comes from the month heading + day cell, across the year boundary
+    assert [e.date for e in events if e.title == "The 16th Annual Bowie Bash!"] == [
+        "2027-01-15",
+        "2027-01-16",
+    ]
+    assert max(e.date for e in events) == "2027-05-21"
+
+    assert sum(e.sold_out for e in events) == 8
+
+
+def test_cafe_du_nord():
+    """
+    Test Cafe du Nord parsing against a saved copy of
+    https://cafedunord.com/shows (fetched 2026-10-27).
+    """
+    fixture = Path(__file__).parent / "websites" / "cafe_du_nord" / "shows.html"
+    events = CafeDuNordScraper.parse(fixture.read_text(encoding="utf-8"))
+    by_title = {e.title: e for e in events}
+
+    assert len(events) == 47
+    assert len({e.id for e in events}) == len(events)
+
+    # Upstairs shows are listed under Swedish American Hall
+    assert sum(e.venue == "cafe_du_nord" for e in events) == 39
+    assert sum(e.venue == "swedish_american_hall" for e in events) == 8
+
+    e = by_title["Francis of Delirium"]
+    assert e.id == "cafe_du_nord-20261029-2000"
+    assert e.doors == "1900"
+    assert e.age == "All Ages"
+    assert [a.name for a in e.artists] == ["Francis of Delirium", "swell foop"]
+    assert e.link == "https://cafedunord.com/shows/2026-10-29-francis-of-delirium"
+    # the main ticket, not the "Preferred Viewing" add-on
+    assert "preferred-viewing" not in e.ticket_link
+    assert e.ticket_link.startswith("https://www.ticketweb.com/event/francis-of-")
+
+    # Each .act is one artist, trailing commas stripped
+    assert [a.name for a in by_title["Sobs"].artists] == ["Sobs", "Lace"]
+    assert any(
+        [a.name for a in e.artists][1:] == ["Clark D", "Delivery Boys"] for e in events
+    )
+
+    # "waitlist" status means sold out
+    assert sum(e.sold_out for e in events) == 2

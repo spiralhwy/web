@@ -1,0 +1,50 @@
+---
+permalink: /spiral_hwy_music_calendar.ics
+eleventyExcludeFromCollections: true
+---
+{#- Subscribable iCalendar feed of the music listings (Google Calendar: "From URL").
+    Line endings and 75-octet folding are applied by the "ics" transform. -#}
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Spiral HWY//Live Music//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Spiral HWY | SF Live Music
+X-WR-CALDESC:Live music at San Francisco's independent venues
+X-WR-TIMEZONE:America/Los_Angeles
+REFRESH-INTERVAL;VALUE=DURATION:PT12H
+X-PUBLISHED-TTL:PT12H
+BEGIN:VTIMEZONE
+TZID:America/Los_Angeles
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0800
+TZOFFSETTO:-0700
+TZNAME:PDT
+DTSTART:19700308T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0700
+TZOFFSETTO:-0800
+TZNAME:PST
+DTSTART:19701101T020000
+RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
+END:STANDARD
+END:VTIMEZONE
+{%- for day in music %}
+{%- for event in day.events %}
+{%- set lineup = "" %}
+{%- for artist in event.artists %}{% set lineup = lineup ~ artist.name ~ ((" (" ~ artist.genre ~ ")") if artist.genre else "") ~ "\n" %}{% endfor %}
+BEGIN:VEVENT
+UID:{{ event.id | safe }}@spiralhwy.com
+DTSTAMP:{{ site.buildTimestamp }}
+DTSTART;TZID=America/Los_Angeles:{{ event.date | icsDateTime(event.time) }}
+DURATION:PT3H
+SUMMARY:{{ (event.title ~ (" (SOLD OUT)" if event.sold_out else "")) | icsText | safe }}
+LOCATION:{{ ((event.venue | displayName) ~ ", " ~ event.address) | icsText | safe }}
+DESCRIPTION:{{ ((event.tagline ~ "\n\n" if event.tagline else "") ~ lineup ~ "\n" ~ ("Doors " ~ (event.doors | formatTime) ~ "\n" if event.doors else "") ~ ([event.age, event.price] | join(" · ")) ~ "\n" ~ (event.ticket_link or event.link)) | icsText | safe }}
+URL:{{ (event.ticket_link or event.link) | safe }}
+END:VEVENT
+{%- endfor %}
+{%- endfor %}
+END:VCALENDAR
