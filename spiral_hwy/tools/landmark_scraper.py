@@ -21,7 +21,7 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from web_scraper import MovieListing, MovieShowing, atomic_write_bytes
+from cinema_scraper import MovieListing, MovieShowing, atomic_write_bytes
 
 LANDMARK_SHOWTIMES_URL = "https://www.landmarktheatres.com/showtimes/"
 LANDMARK_THEATER_ID = "X00U8"
@@ -35,7 +35,7 @@ LANDMARK_MAP = "https://maps.app.goo.gl/kqZu2DAkUSAYxtrP9"
 
 class LandmarkScraper(AlamoScraper):
     """
-    Extends AlamoScraper (which extends WebScraper) to add Landmark
+    Extends AlamoScraper (which extends CinemaScraper) to add Landmark
     Opera Plaza Cinema scraping. Writes into the same self.listings
     dict so save_json works unchanged.
     """
