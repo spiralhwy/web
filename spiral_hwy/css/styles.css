@@ -125,6 +125,21 @@ a.area-link:hover {
     margin-bottom: 0.33em;
 }
 
+.site-nav {
+    text-align: center;
+    font-size: 0.9em;
+}
+
+.site-nav a[aria-current="page"] {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.nav-sep {
+    color: #707070;
+    margin: 0 6px;
+}
+
 #filter-controls {
     margin: 16px auto 0;
     display: flex;
@@ -375,6 +390,27 @@ a.area-link:hover {
 
 .time {
     white-space: nowrap;
+}
+
+/* Music events (layout shared with .movie-block) */
+
+.event-tagline,
+.event-genre,
+.event-details {
+    color: #aaa;
+    font-size: 0.9em;
+}
+
+.event-support {
+    margin: 4px 0;
+}
+
+.event-doors {
+    color: #aaa;
+}
+
+.event-sold-out {
+    color: #f00;
 }
 
 .time.sold-out {

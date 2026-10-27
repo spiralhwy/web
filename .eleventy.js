@@ -30,13 +30,15 @@ module.exports = function(eleventyConfig) {
 
   // format a theater slug for display (e.g. "alamo_drafthouse_sf" -> "Alamo Drafthouse SF")
   // title-cases each word, but keeps known acronyms fully capitalized
+  // and short connecting words lowercase ("bottom_of_the_hill" -> "Bottom of the Hill")
   const UPPERCASE_WORDS = new Set(["sf"]);
+  const LOWERCASE_WORDS = new Set(["of", "the", "and"]);
   eleventyConfig.addFilter("displayName", function(slug) {
-    return String(slug).split("_").map(function(word) {
+    return String(slug).split("_").map(function(word, i) {
       const lower = word.toLowerCase();
-      return UPPERCASE_WORDS.has(lower)
-        ? lower.toUpperCase()
-        : lower.charAt(0).toUpperCase() + lower.slice(1);
+      if (UPPERCASE_WORDS.has(lower)) return lower.toUpperCase();
+      if (i > 0 && LOWERCASE_WORDS.has(lower)) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
     }).join(" ");
   });
 
@@ -44,6 +46,8 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addGlobalData("site", {
     url: "https://www.spiralhwy.com",
     buildDate: new Date().toISOString().slice(0, 10),
+    // UTC "YYYYMMDDTHHMMSSZ", for iCalendar DTSTAMP
+    buildTimestamp: new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z",
   });
 
   // collect the unique theaters across all listings, sorted by slug
@@ -61,6 +65,64 @@ module.exports = function(eleventyConfig) {
     return Array.from(theaters.values()).sort(function(a, b) {
       return a.theater.localeCompare(b.theater);
     });
+  });
+
+  // pull one field out of each item (e.g. movies | pluck("date"))
+  eleventyConfig.addFilter("pluck", function(items, key) {
+    return (items || []).map(function(item) { return item[key]; });
+  });
+
+  // collect the unique music venues across all events, sorted by slug
+  eleventyConfig.addFilter("uniqueVenues", function(music) {
+    const venues = new Map();
+    (music || []).forEach(function(day) {
+      day.events.forEach(function(event) {
+        if (!venues.has(event.venue)) {
+          venues.set(event.venue, event);
+        }
+      });
+    });
+    return Array.from(venues.values()).sort(function(a, b) {
+      return a.venue.localeCompare(b.venue);
+    });
+  });
+
+  // iCalendar (RFC 5545) helpers for music.ics
+  // escape a TEXT value: backslash, semicolon, comma, and newlines
+  eleventyConfig.addFilter("icsText", function(text) {
+    return String(text || "")
+      .replace(/\\/g, "\\\\")
+      .replace(/;/g, "\\;")
+      .replace(/,/g, "\\,")
+      .replace(/\r?\n/g, "\\n");
+  });
+
+  // "2026-10-28" + "2000" -> "20261028T200000" (local time; pair with TZID)
+  eleventyConfig.addFilter("icsDateTime", function(dateString, timeString) {
+    return dateString.replace(/-/g, "") + "T" + timeString + "00";
+  });
+
+  // .ics files need CRLF line endings and lines folded at 75 octets
+  eleventyConfig.addTransform("ics", function(content) {
+    if (!(this.page.outputPath || "").endsWith(".ics")) return content;
+    const encoder = new TextEncoder();
+    return content.split(/\r?\n/).filter(function(line) {
+      return line.trim() !== "";
+    }).map(function(line) {
+      const folded = [];
+      let current = "";
+      for (const ch of line) {
+        // continuation lines start with a space, which counts toward the limit
+        const limit = folded.length === 0 ? 75 : 74;
+        if (encoder.encode(current + ch).length > limit) {
+          folded.push(current);
+          current = "";
+        }
+        current += ch;
+      }
+      folded.push(current);
+      return folded.join("\r\n ");
+    }).join("\r\n") + "\r\n";
   });
 
   return {

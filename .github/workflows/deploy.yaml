@@ -64,6 +64,9 @@ jobs:
       - name: Run WebScraper
         run: poetry run ./spiral_hwy/tools/web_scraper.py
 
+      - name: Run MusicScraper
+        run: poetry run ./spiral_hwy/tools/music_scraper.py
+
       - name: build
         run: npx @11ty/eleventy
 

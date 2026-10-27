@@ -15,6 +15,13 @@ from selenium.webdriver.common.by import By
 
 from spiral_hwy.tools.alamo_scraper import AlamoScraper
 from spiral_hwy.tools.landmark_scraper import LandmarkScraper
+from spiral_hwy.tools.music_scraper import (
+    BottomOfTheHillScraper,
+    MusicEvent,
+    _normalize_age,
+    _parse_12h_time,
+    group_by_date,
+)
 from spiral_hwy.tools.web_scraper import (
     MovieShowing,
     WebScraper,
@@ -352,3 +359,75 @@ def test_landmark():
 
     finally:
         driver.quit()
+
+
+def test_bottom_of_the_hill():
+    """
+    Test Bottom of the Hill calendar parsing against a saved copy of
+    https://www.bottomofthehill.com/calendar.html (fetched 2026-10-27).
+    """
+    assert _parse_12h_time("7:00PM") == "1900"
+    assert _parse_12h_time("12:30am") == "0030"
+    assert _parse_12h_time("13:00PM") is None
+    assert _normalize_age("\u2022\u2022\u2022 21 AND OVER") == "21+"
+    assert _normalize_age("\u2022\u2022\u2022\xa0 ALL AGES") == "All Ages"
+
+    fixture = (
+        Path(__file__).parent / "websites" / "bottom_of_the_hill" / "calendar.html"
+    )
+    events = BottomOfTheHillScraper.parse(fixture.read_text(encoding="iso-8859-1"))
+    by_date = {e.date: e for e in events}
+
+    # 50 shows listed; 11/1 and 11/3 are CLOSED (cancelled) and dropped
+    assert len(events) == 48
+    assert "2026-11-01" not in by_date and "2026-11-03" not in by_date
+    assert len({e.id for e in events}) == len(events)
+
+    # Typical show: doors/show times, tagline, lineup with genres, links
+    e = by_date["2026-10-28"]
+    assert e.id == "bottom_of_the_hill-20261028-2000"
+    assert (e.doors, e.time) == ("1900", "2000")
+    assert e.title == "Slothrust"
+    assert e.tagline == "The Dystopian Theatre Tour"
+    assert [(a.name, a.genre) for a in e.artists] == [
+        ("Slothrust", "rock, grunge, garage"),
+        ("Um, Jennifer?", "pop rock punk"),
+    ]
+    assert e.age == "All Ages"
+    assert e.price == "$25 in advance / $28 at the door"
+    assert (
+        e.ticket_link == "https://www.bottomofthehill.com/stubmatic/event20261028.html"
+    )
+    assert e.link == "https://www.bottomofthehill.com/20261028.html"
+    assert e.image == "https://www.bottomofthehill.com/f/20261027and28fs.jpg"
+    assert not e.sold_out
+
+    # Date comes from the text, not the (stale) "20261212" anchor
+    assert by_date["2026-12-13"].title == "El Vez & the Centuries"
+    assert by_date["2026-12-12"].title == "Hot Lunch"
+
+    # Sold out: no ticket button; DJ "/ Name" prefix stripped
+    e = by_date["2026-11-13"]
+    assert e.sold_out and e.ticket_link == ""
+    assert [a.name for a in e.artists][-1] == "Mike Gabriel"
+    assert sum(e.sold_out for e in events) == 13
+
+    # "TBA" placeholders and "... and more" aren't artists
+    assert [a.name for a in by_date["2026-12-01"].artists] == ["Fat, Evil Children"]
+    assert "... and more" not in [a.name for a in by_date["2026-12-26"].artists]
+
+    # Bracketed notes are dropped from the price
+    assert by_date["2026-11-12"].price == "$17 in advance / $20 at the door"
+
+    # Grouped by date, sorted by start time within a date
+    grouped = group_by_date(
+        [
+            MusicEvent("b", "v", "", "", "", "", "2026-01-02", "2000", "B"),
+            MusicEvent("c", "v", "", "", "", "", "2026-01-01", "2100", "C"),
+            MusicEvent("a", "v", "", "", "", "", "2026-01-01", "1900", "A"),
+        ]
+    )
+    assert [(d["date"], [e.id for e in d["events"]]) for d in grouped] == [
+        ("2026-01-01", ["a", "c"]),
+        ("2026-01-02", ["b"]),
+    ]
