@@ -19,6 +19,7 @@ from spiral_hwy.tools.cinema_scraper import (
     MovieShowing,
     get_driver,
     go_to_website,
+    merge_listings,
 )
 from spiral_hwy.tools.landmark_scraper import LandmarkScraper
 from spiral_hwy.tools.music_scraper import (
@@ -144,6 +145,24 @@ def test_3d_title():
 
     # Title with other HTML tags — stripped but no 3D suffix
     assert make_listing("Title <b>Bold</b>") == "Title Bold"
+
+
+def test_merge_listings_title_case():
+    """
+    Test that the same movie from different theaters merges even when the
+    titles differ in case, keeping the non-all-caps spelling.
+    """
+    master: dict = {}
+    merge_listings(master, {"2026-04-01": {"NAZA": {"poster": "a", "listings": [1]}}})
+    merge_listings(master, {"2026-04-01": {"Naza": {"poster": "b", "listings": [2]}}})
+    merge_listings(master, {"2026-04-01": {"NAZA": {"poster": "c", "listings": [3]}}})
+    assert master == {"2026-04-01": {"Naza": {"poster": "a", "listings": [1, 2, 3]}}}
+
+    # Different movies and 3D versions stay separate
+    merge_listings(master, {"2026-04-01": {"Naza [3D]": {"listings": [4]}}})
+    merge_listings(master, {"2026-04-02": {"NAZA": {"listings": [5]}}})
+    assert set(master["2026-04-01"]) == {"Naza", "Naza [3D]"}
+    assert set(master["2026-04-02"]) == {"NAZA"}
 
 
 def test_alamo():

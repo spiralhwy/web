@@ -110,16 +110,26 @@ def merge_listings(dst: dict, src: dict) -> None:
         {date: {title: {"poster": ..., "rating": ..., "listings": [...]}}}
     For a (date, title) seen by multiple tasks, the `listings` arrays are
     concatenated; poster/rating come from whichever task arrived first.
+    Titles that differ only in case, punctuation, or spacing (e.g. "NAZA" vs
+    "Naza") are the same movie; the non-all-caps spelling is kept.
     """
     for date, movies in src.items():
         date_dict = dst.setdefault(date, {})
         for title, data in movies.items():
-            if title not in date_dict:
+            match = next(
+                (t for t in date_dict if title_key(t) == title_key(title)), None
+            )
+            if match is None:
                 date_dict[title] = data
-            else:
-                date_dict[title].setdefault("listings", []).extend(
-                    data.get("listings", [])
-                )
+                continue
+            date_dict[match].setdefault("listings", []).extend(data.get("listings", []))
+            if match.isupper() and not title.isupper():
+                date_dict[title] = date_dict.pop(match)
+
+
+def title_key(title: str) -> str:
+    """Normalize a title for matching the same movie across theaters."""
+    return re.sub(r"\W+", "", title.casefold())
 
 
 def go_to_website(driver: WebDriver, website: str, first_element: DictConfig) -> None:
