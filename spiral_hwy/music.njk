@@ -194,6 +194,7 @@ permalink: /music/
         })();
 
         {% include "sticky_dates.js" %}
+        {% include "tidy_date.js" %}
         (function() {
             // Discover all venues from the rendered events.
             const venues = new Map();
@@ -236,22 +237,9 @@ permalink: /music/
                 document.querySelectorAll('.event-block').forEach(function(block) {
                     const visible = showAll || selected.has(block.dataset.venue);
                     block.style.display = visible ? '' : 'none';
-                    const next = block.nextElementSibling;
-                    if (next && next.classList.contains('divider')) {
-                        next.style.display = visible ? '' : 'none';
-                    }
                 });
                 document.querySelectorAll('.sticky-wrapper').forEach(function(wrapper) {
-                    let sibling = wrapper.nextElementSibling;
-                    let anyVisible = false;
-                    while (sibling && !sibling.classList.contains('sticky-wrapper')) {
-                        if (sibling.classList.contains('event-block') && sibling.style.display !== 'none') {
-                            anyVisible = true;
-                            break;
-                        }
-                        sibling = sibling.nextElementSibling;
-                    }
-                    wrapper.style.display = anyVisible ? '' : 'none';
+                    tidyDate(wrapper, 'event-block');
                 });
             }
 
