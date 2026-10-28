@@ -537,6 +537,12 @@ def _scrape_alamo_task() -> dict:
         driver.quit()
 
 
+def _scrape_castro_task() -> dict:
+    from castro_scraper import scrape_castro
+
+    return scrape_castro(CinemaScraper().poster_dir)
+
+
 def _scrape_veezi_task(website, layout: DictConfig, first_element: DictConfig) -> dict:
     driver = get_driver()
     try:
@@ -557,6 +563,7 @@ def main(config: DictConfig):
     tasks = [
         ("landmark_opera_plaza", _scrape_landmark_task, ()),
         ("alamo_drafthouse_sf", _scrape_alamo_task, ()),
+        ("the_castro_theatre", _scrape_castro_task, ()),
     ]
     for w in config.veezi.websites:
         tasks.append((w.theater, _scrape_veezi_task, (w, layout, first_element)))
