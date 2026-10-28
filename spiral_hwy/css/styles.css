@@ -33,10 +33,10 @@
     font-display: swap;
 }
 
-/* Hover/highlight color: red-orange for cinema, green for music */
+/* Hover/highlight color: red for cinema, green for music */
 :root {
-    --accent-cinema: #ff4100; /* rgb(255, 65, 0) */
-    --accent-music: #00ffa9; /* rgb(0, 255, 169) */
+    --accent-cinema: #f10; /* rgb(255, 17, 0) */
+    --accent-music: #8aff00; /* rgb(138, 255, 0) */
     --accent: var(--accent-cinema);
 }
 
