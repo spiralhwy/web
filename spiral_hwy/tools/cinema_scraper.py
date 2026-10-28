@@ -226,8 +226,13 @@ class CinemaScraper:
     def _get_element_text(item: WebElement, _asset: DictConfig) -> str:
         """
         Get text only from web element.
+        `.text` is only the rendered text, so it is empty if the page hasn't been
+        laid out yet; fall back to the element's textContent then.
         """
-        return item.text.strip()
+        text = item.text.strip()
+        if not text:
+            text = re.sub(r"\s+", " ", item.get_attribute("textContent") or "").strip()
+        return text
 
     def _convert_date(self, date: str, config: DictConfig) -> str:
         """
@@ -266,7 +271,10 @@ class CinemaScraper:
     def _convert_time(self, time: str, config: DictConfig) -> str:
         """
         Convert time to standardized format.
+        A blank time is left blank, and the showing is skipped by _create_showing.
         """
+        if not time:
+            return ""
         date_obj = datetime.strptime(time, config.format)
         return date_obj.strftime("%H%M")
 
@@ -319,9 +327,19 @@ class CinemaScraper:
     def _create_showing(self, _element: WebElement, _config: DictConfig) -> None:
         """
         Create showing object containing time and link to tickets.
+        A showing without a time is skipped with a warning, so one bad entry
+        doesn't fail the whole theater. (A listing left with no showings at
+        all still fails, in _create_listing.)
         """
         if not self.assets["time"]:
-            raise RuntimeError("No link or time information for showing.")
+            print(
+                f"  warning: skipping showing with no time "
+                f"({self.assets.get('theater')}, {self.assets.get('date')}, "
+                f"link {self.assets['link']!r})"
+            )
+            self.assets["available"] = ""
+            self.assets["link"] = ""
+            return
 
         self.showings.append(
             MovieShowing(
