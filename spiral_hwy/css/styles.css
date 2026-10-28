@@ -96,9 +96,10 @@ a.area-link:hover {
     gap: 20px;
 }
 
+/* Title sits beside the poster so each card is only as tall as the poster */
 .movie-info {
     flex: 1;
-    min-width: 250px;
+    min-width: 0;
 }
 
 .movie-title {
@@ -441,13 +442,28 @@ a.area-link:hover {
     white-space: nowrap;
 }
 
+.cinema .movie-title {
+    margin-bottom: 10px;
+}
+
 /* Music events (layout shared with .movie-block) */
 
-.event-tagline,
-.event-genre,
-.event-details {
-    color: #aaa;
+/* SOLD OUT tag sits on the headliner's line at the body text size */
+.event-headline .movie-title {
+    display: inline;
+}
+
+.event-sold-out {
+    color: var(--accent);
+    margin-left: 0.5em;
     font-size: 0.9em;
+    white-space: nowrap;
+}
+
+/* Music images are mostly 3:2 artist photos, so use a landscape frame */
+.event-block .poster-container {
+    width: 180px;
+    height: 120px;
 }
 
 .event-support {
@@ -460,10 +476,6 @@ a.area-link:hover {
 
 .event-doors {
     color: #aaa;
-}
-
-.event-sold-out {
-    color: var(--accent);
 }
 
 .time.sold-out {
@@ -491,7 +503,6 @@ a.area-link:hover {
     }
 
     .movie-block {
-        flex-direction: column;
         align-items: flex-start;
         gap: 15px;
     }
@@ -557,6 +568,11 @@ a.area-link:hover {
     .poster-container {
         width: 100px;
         height: 150px;
+    }
+
+    .event-block .poster-container {
+        width: 135px;
+        height: 90px;
     }
 
     .showtimes {
