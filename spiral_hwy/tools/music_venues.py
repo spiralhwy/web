@@ -39,6 +39,9 @@ TICKET_PASS = re.compile(
     r"\b(\d+|two|three|four)[\s-](day|show|night)\s+pass\b", re.IGNORECASE
 )
 
+# Venue rentals (e.g. GAMH's "PRIVATE EVENT") aren't public shows.
+PRIVATE_EVENT = re.compile(r"\bprivate\s+events?\b", re.IGNORECASE)
+
 
 def _artists(names: List[str]) -> List[Artist]:
     return [Artist(name=n) for n in names if n.lower() not in PLACEHOLDER_ARTISTS]
@@ -152,6 +155,8 @@ class BottomOfTheHillScraper:
         title = artists[0].name if artists else (taglines[0] if taglines else "")
         if not title:
             raise ValueError(f"{date}: no lineup")
+        if PRIVATE_EVENT.search(title):
+            return None
 
         age = _normalize_age(
             " ".join(el.get_text() for el in cls._top_level(cell, "age"))
@@ -267,7 +272,7 @@ class IndependentScraper:
         if NOT_HAPPENING.search(status) or NOT_HAPPENING.search(title):
             print(f"  The Independent: {title!r} is {status!r}, skipping")
             return None
-        if TICKET_PASS.search(title):
+        if TICKET_PASS.search(title) or PRIVATE_EVENT.search(title):
             return None
 
         md = cls._text(item, ".tw-event-date")
@@ -368,7 +373,7 @@ class GreatAmericanMusicHallScraper:
         title = _clean(title_link.get_text(" ")) if title_link else ""
         if not title:
             raise ValueError("no title")
-        if TICKET_PASS.search(title):
+        if TICKET_PASS.search(title) or PRIVATE_EVENT.search(title):
             return None
 
         day = card.find_parent("td").select_one(".date-number")
@@ -477,7 +482,7 @@ class CafeDuNordScraper:
         if NOT_HAPPENING.search(status.replace("-", " ")):
             print(f"  Cafe du Nord: {title!r} is {status!r}, skipping")
             return None
-        if TICKET_PASS.search(title):
+        if TICKET_PASS.search(title) or PRIVATE_EVENT.search(title):
             return None
 
         venue = cls.ROOMS.get(row.get("data-room", ""))
