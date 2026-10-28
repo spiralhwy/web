@@ -43,8 +43,8 @@ TICKET_PASS = re.compile(
     r"\b(\d+|two|three|four)[\s-](day|show|night)\s+pass\b", re.IGNORECASE
 )
 
-# Holds on the calendar rather than public shows.
-PRIVATE_EVENT = re.compile(r"^\W*private\s+(event|party)\W*$", re.IGNORECASE)
+# Venue rentals and holds (e.g. GAMH's "PRIVATE EVENT") aren't public shows.
+PRIVATE_EVENT = re.compile(r"\bprivate\s+(events?|party)\b", re.IGNORECASE)
 
 
 def _skip_reason(title: str, status: str = "") -> str | None:
@@ -56,7 +56,7 @@ def _skip_reason(title: str, status: str = "") -> str | None:
         return f"cancelled/postponed/moved ({status or title})"
     if TICKET_PASS.search(title):
         return "a ticket pass"
-    if PRIVATE_EVENT.match(title):
+    if PRIVATE_EVENT.search(title):
         return "a private event"
     if re.search(r"event passed", status, re.IGNORECASE):
         return "already past"
@@ -175,6 +175,8 @@ class BottomOfTheHillScraper:
         title = artists[0].name if artists else (taglines[0] if taglines else "")
         if not title:
             raise ValueError(f"{date}: no lineup")
+        if PRIVATE_EVENT.search(title):
+            return None
 
         age = _normalize_age(
             " ".join(el.get_text() for el in cls._top_level(cell, "age"))
