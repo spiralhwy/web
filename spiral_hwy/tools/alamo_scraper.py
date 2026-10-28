@@ -18,12 +18,12 @@ from pathlib import Path
 
 import pytz
 import requests
+from cinema_scraper import CinemaScraper, MovieListing, MovieShowing, atomic_write_bytes
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from cinema_scraper import MovieListing, MovieShowing, CinemaScraper, atomic_write_bytes
 
 ALAMO_SF_URL = "https://drafthouse.com/sf"
 ALAMO_SF_THEATER = "alamo_drafthouse_sf"

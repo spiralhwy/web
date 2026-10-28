@@ -35,9 +35,9 @@
 
 /* Hover/highlight color: red for cinema, green for music */
 :root {
-    --accent: #f00;
-    --accent-cinema: #f00;
-    --accent-music: #abff00;
+    --accent-cinema: #f10; /* rgb(255, 17, 0) */
+    --accent-music: #8aff00; /* rgb(138, 255, 0) */
+    --accent: var(--accent-cinema);
 }
 
 body.music {

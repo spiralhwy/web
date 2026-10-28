@@ -267,6 +267,7 @@ permalink: /cinema/
         })();
 
         {% include "sticky_dates.js" %}
+        {% include "tidy_date.js" %}
         (function() {
             const corporate = ['alamo_drafthouse_sf', 'landmark_opera_plaza'];
 
@@ -328,22 +329,9 @@ permalink: /cinema/
                         return el.style.display !== 'none';
                     });
                     block.style.display = visible ? '' : 'none';
-                    const next = block.nextElementSibling;
-                    if (next && next.classList.contains('divider')) {
-                        next.style.display = visible ? '' : 'none';
-                    }
                 });
                 document.querySelectorAll('.sticky-wrapper').forEach(function(wrapper) {
-                    let sibling = wrapper.nextElementSibling;
-                    let anyVisible = false;
-                    while (sibling && !sibling.classList.contains('sticky-wrapper')) {
-                        if (sibling.classList.contains('movie-block') && sibling.style.display !== 'none') {
-                            anyVisible = true;
-                            break;
-                        }
-                        sibling = sibling.nextElementSibling;
-                    }
-                    wrapper.style.display = anyVisible ? '' : 'none';
+                    tidyDate(wrapper, 'movie-block');
                 });
                 indieBtn.textContent = isIndieSelection() ? 'Reset Filter' : 'Indie Mode';
             }

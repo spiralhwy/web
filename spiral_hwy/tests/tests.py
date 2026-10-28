@@ -14,6 +14,12 @@ from omegaconf import DictConfig
 from selenium.webdriver.common.by import By
 
 from spiral_hwy.tools.alamo_scraper import AlamoScraper
+from spiral_hwy.tools.cinema_scraper import (
+    CinemaScraper,
+    MovieShowing,
+    get_driver,
+    go_to_website,
+)
 from spiral_hwy.tools.landmark_scraper import LandmarkScraper
 from spiral_hwy.tools.music_scraper import (
     MusicEvent,
@@ -21,20 +27,21 @@ from spiral_hwy.tools.music_scraper import (
     _parse_12h_time,
     _split_lineup,
     dedupe,
+    drop_past,
     group_by_date,
     infer_date,
 )
 from spiral_hwy.tools.music_venues import (
     BottomOfTheHillScraper,
+    BrickAndMortarScraper,
     CafeDuNordScraper,
+    ChapelScraper,
+    FoxOaklandScraper,
     GreatAmericanMusicHallScraper,
+    GreekTheatreScraper,
     IndependentScraper,
-)
-from spiral_hwy.tools.cinema_scraper import (
-    MovieShowing,
-    CinemaScraper,
-    get_driver,
-    go_to_website,
+    RickshawStopScraper,
+    _unwrap_link,
 )
 
 K_TMP_TEST_DIR = Path("/tmp/spiral-hwy-test")
@@ -467,6 +474,13 @@ def test_music_helpers():
     b = MusicEvent("x", "v", "", "", "", "", "2026-01-01", "2000", "B")
     assert [e.title for e in dedupe([a, b])] == ["A"]
 
+    # Shows before yesterday are dropped; yesterday stays (late-night shows)
+    old = MusicEvent("o", "v", "", "", "", "", "2026-10-25", "2000", "Old")
+    late = MusicEvent("y", "v", "", "", "", "", "2026-10-26", "2300", "Late")
+    assert [e.title for e in drop_past([old, late, a], today)] == ["Late"]
+
+    assert _normalize_age("Ages 18 and up") == "18+"
+
 
 def test_the_independent():
     """
@@ -527,8 +541,11 @@ def test_great_american_music_hall():
     events = GreatAmericanMusicHallScraper.parse(fixture.read_text(encoding="utf-8"))
     by_title = {e.title: e for e in events}
 
-    # 66 listed, minus a 3-show pass and a 2-day pass
-    assert len(events) == 64
+    # 66 listed, minus a 3-show pass, a 2-day pass, two "*CANCELLED*" shows,
+    # and four "PRIVATE EVENT" holds
+    assert len(events) == 58
+    assert not any("CANCELLED" in e.title for e in events)
+    assert not any("PRIVATE" in e.title for e in events)
     assert len({e.id for e in events}) == len(events)
     assert not any("pass" in e.title.lower() for e in events)
 
@@ -550,7 +567,10 @@ def test_great_american_music_hall():
     ]
     assert max(e.date for e in events) == "2027-05-21"
 
-    assert sum(e.sold_out for e in events) == 8
+    # Only "Sold Out" buttons count; "More Info" buttons with the sold-out
+    # style are shows ticketed elsewhere (Eventbrite, TicketWeb) or holds
+    assert sum(e.sold_out for e in events) == 0
+    assert not by_title["A John Waters Xmas"].sold_out
 
 
 def test_cafe_du_nord():
@@ -587,3 +607,161 @@ def test_cafe_du_nord():
 
     # "waitlist" status means sold out
     assert sum(e.sold_out for e in events) == 2
+
+
+def websites(*parts: str) -> str:
+    """Read a saved venue page from tests/websites/."""
+    return (
+        (Path(__file__).parent / "websites")
+        .joinpath(*parts)
+        .read_text(encoding="utf-8")
+    )
+
+
+def test_brick_and_mortar():
+    """
+    Test Brick & Mortar Music Hall (TicketWeb plugin, paginated) against its
+    three pages, saved 2026-10-27.
+    """
+    pages = [
+        websites("brick_and_mortar_music_hall", f"page{n}.html") for n in (1, 2, 3)
+    ]
+    # pagination: each page links to the next; the last links nowhere
+    assert [BrickAndMortarScraper.next_page(p) for p in pages] == [
+        "https://www.brickandmortarmusic.com/page/2/",
+        "https://www.brickandmortarmusic.com/page/3/",
+        None,
+    ]
+    today = datetime(2026, 10, 27).date()
+    events = [e for p in pages for e in BrickAndMortarScraper.parse(p, today=today)]
+    by_title = {e.title: e for e in events}
+
+    assert len(events) == 45  # 21 + 21 + 3
+    assert len({e.id for e in events}) == len(events)
+    assert max(e.date for e in events) == "2027-05-14"  # page 3, next year
+
+    # This theme lists openers in the name: "Hayden Everett, Jackson Lundy"
+    e = by_title["Hayden Everett"]
+    assert [a.name for a in e.artists] == ["Hayden Everett", "Jackson Lundy"]
+    assert (e.doors, e.time) == ("1900", "2000")
+    assert e.age == "All Ages"
+    assert e.price == "$33.74"
+    assert e.tagline == "Brick & Mortar Music Hall Presents"
+
+    assert {e.age for e in events} == {"All Ages", "18+", "21+"}
+    assert sum(e.sold_out for e in events) == 6
+
+
+def test_the_chapel():
+    """
+    Test The Chapel (SeeTickets calendar) against a saved copy of
+    https://thechapelsf.com/calendar/ (2026-10-27). The calendar holds the
+    same 45 ticketed shows as the 5-page list at /music/.
+    """
+    events = ChapelScraper.parse(websites("the_chapel", "calendar.html"))
+    by_title = {e.title: e for e in events}
+
+    # 48 listed, minus "POSTPONED: ChapelMania" and three "Private Event" holds
+    assert len(events) == 44
+    assert len({e.id for e in events}) == len(events)
+    assert not any("POSTPONED" in e.title for e in events)
+
+    # "Show at" / "Doors at" times and "Supporting Talent:" openers
+    e = by_title["Katie Pruitt"]
+    assert (e.date, e.doors, e.time) == ("2026-10-29", "1900", "2000")
+    assert [a.name for a in e.artists] == ["Katie Pruitt", "Olivia Barton"]
+    assert e.ticket_link.startswith("https://wl.seetickets.us/event/katie-pruitt/")
+
+    assert sum(e.sold_out for e in events) == 2
+
+
+def test_rickshaw_stop():
+    """
+    Test Rickshaw Stop against a saved WordPress API response for its calendar
+    page (2026-10-27); the site's HTML pages are blocked by Cloudflare.
+    """
+    assert (
+        _unwrap_link(
+            "https://urldefense.com/v3/__https://wl.eventim.us/event/x/1?afflky=A__;!!AEl5"
+        )
+        == "https://wl.eventim.us/event/x/1?afflky=A"
+    )
+    assert (
+        _unwrap_link("https://wl.seetickets.us/e/1") == "https://wl.seetickets.us/e/1"
+    )
+
+    events = RickshawStopScraper.parse_api(
+        websites("rickshaw_stop", "calendar_api.json")
+    )
+    by_title = {e.title: e for e in events}
+
+    # 48 listed, minus one marked "Event passed"
+    assert len(events) == 47
+    assert len({e.id for e in events}) == len(events)
+    assert not any("urldefense" in e.ticket_link for e in events)
+
+    e = by_title["VIOLET GROHL"]
+    assert (e.date, e.doors, e.time) == ("2026-10-27", "1900", "2000")
+    assert [a.name for a in e.artists] == ["VIOLET GROHL", "Suzy Clue"]
+    assert e.ticket_link == (
+        "https://wl.eventim.us/event/violet-grohl/693274?afflky=POPSCENEPresents"
+    )
+
+    # Multiple openers; "support tba" / "opener tba" placeholders dropped
+    assert [a.name for a in by_title["Natural Child"].artists] == [
+        "Natural Child",
+        "Buzzed Lightbeer",
+        "Milk for the Angry",
+        "Catnip",
+    ]
+    assert [a.name for a in by_title["RUBY HAUNT"].artists] == [
+        "RUBY HAUNT",
+        "vhs ghost",
+    ]
+    assert not any("tba" in a.name.lower() for e in events for a in e.artists)
+
+
+def test_the_fox_oakland():
+    """
+    Test The Fox Oakland against a saved copy of
+    https://thefoxoakland.com/listing/ (2026-10-27).
+    """
+    events = FoxOaklandScraper.parse(websites("the_fox_oakland", "listing.html"))
+    by_title = {e.title: e for e in events}
+
+    assert len(events) == 35
+    assert len({e.id for e in events}) == len(events)
+
+    e = by_title["Jessie Reyez"]
+    assert (e.date, e.doors, e.time) == ("2026-11-06", "1900", "2000")
+    assert e.tagline == "A Little Vengeance Tour 2026"
+    assert e.sold_out
+    assert e.ticket_link.startswith("https://www.ticketmaster.com/jessie-reyez-")
+    assert e.link == "https://thefoxoakland.com/events/jessie-reyez-261106"
+
+    # Multi-night runs are separate events
+    assert [e.date for e in events if e.title == "Pretty Lights"] == [
+        "2026-11-19",
+        "2026-11-20",
+        "2026-11-21",
+    ]
+    assert sum(e.sold_out for e in events) == 6
+
+
+def test_the_greek_theatre():
+    """
+    Test The Greek Theatre against a saved copy of its home page (2026-10-27),
+    which lists every upcoming show (it matches /calendar).
+    """
+    events = GreekTheatreScraper.parse(websites("the_greek_theatre", "home.html"))
+    assert [(e.date, e.title) for e in events] == [
+        (
+            "2026-11-04",
+            "Ms. Lauryn Hill & Wyclef Jean: Celebrating 30 years of Fugees’ The Score",
+        ),
+        ("2026-11-07", "HUGEL"),
+        ("2027-08-12", "The Red Clay Strays"),
+        ("2027-09-07", "Sienna Spiro"),
+    ]
+    assert events[0].doors == "1730" and events[0].time == "1900"
+    assert all(e.venue == "the_greek_theatre" for e in events)
