@@ -15,6 +15,7 @@ sorted by date, and by start time within each date.
 
 import json
 import re
+import time
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -169,6 +170,21 @@ def fetch_html(url: str, encoding: str | None = None) -> str:
     return resp.text
 
 
+def fetch_bytes(url: str, retries: int = 4) -> bytes:
+    """
+    GET a file and return its bytes. Some venue sites (The Castro) rate-limit
+    image downloads with 429s, so back off and retry those.
+    """
+    for attempt in range(retries + 1):
+        resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=30)
+        if resp.status_code != 429 or attempt == retries:
+            resp.raise_for_status()
+            return resp.content
+        wait = resp.headers.get("Retry-After", "")
+        time.sleep(int(wait) if wait.isdigit() else 2 ** (attempt + 1))
+    raise AssertionError("unreachable")
+
+
 def drop_past(events: List[MusicEvent], today: date | None = None) -> List[MusicEvent]:
     """
     Drop shows dated before yesterday; some venues leave finished shows listed
@@ -217,11 +233,7 @@ def save_flyer(event: MusicEvent, flyer_dir: Path) -> None:
     save_path = flyer_dir / f"{event.id}.jpg"
     if not save_path.exists():
         try:
-            resp = requests.get(
-                event.image, headers={"User-Agent": USER_AGENT}, timeout=30
-            )
-            resp.raise_for_status()
-            atomic_write_bytes(save_path, resp.content)
+            atomic_write_bytes(save_path, fetch_bytes(event.image))
         except requests.RequestException as e:
             print(f"  flyer download failed for {event.id}: {e}")
             event.image = ""

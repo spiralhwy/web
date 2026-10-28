@@ -679,10 +679,15 @@ class AnotherPlanetScraper:
     times, a tour line (.topline), and a Ticketmaster button (class
     "soldout" when sold out). The list holds every upcoming show; it matches
     the site's /calendar/ page.
+
+    Some sites mark the list and start date up differently, so subclasses can
+    override CARD_SELECTOR and DATE_SELECTOR.
     """
 
     VENUE: Venue
     URL: str
+    CARD_SELECTOR = ".upcoming-events-list .mix.detail-information"
+    DATE_SELECTOR = ".single-date-show"
 
     @classmethod
     def scrape(cls) -> List[MusicEvent]:
@@ -692,7 +697,7 @@ class AnotherPlanetScraper:
     def parse(cls, html: str) -> List[MusicEvent]:
         soup = BeautifulSoup(html, "html.parser")
         events = []
-        for card in soup.select(".upcoming-events-list .mix.detail-information"):
+        for card in soup.select(cls.CARD_SELECTOR):
             try:
                 event = cls._parse_event(card)
             except ValueError as e:
@@ -718,11 +723,15 @@ class AnotherPlanetScraper:
             print(f"  {cls.VENUE.slug}: skipping {title!r}: {reason}")
             return None
 
-        when = card.select_one(".single-date-show")
+        if card.select_one(".event__start-time") is None:
+            # Multi-day festivals list "Dates: Mar 11, 12, 13" instead of a time
+            print(f"  {cls.VENUE.slug}: skipping {title!r}: no show time")
+            return None
+        when = card.select_one(cls.DATE_SELECTOR)
         try:
-            start = datetime.strptime(
-                _clean(when.get("content", "")).upper(), "%B %d, %Y %I:%M %p"
-            )
+            # "November 6, 2026 8:00 pm", or "8:00pm" without the space
+            content = re.sub(r"(\d)([ap]m)$", r"\1 \2", _clean(when.get("content", "")))
+            start = datetime.strptime(content.upper(), "%B %d, %Y %I:%M %p")
         except (AttributeError, ValueError):
             raise ValueError(f"{title!r}: bad start {when and when.get('content')!r}")
         doors_el = card.select_one(".event__doors-open")
@@ -776,6 +785,25 @@ class GreekTheatreScraper(AnotherPlanetScraper):
     URL = "https://thegreekberkeley.com/"
 
 
+class CastroScraper(AnotherPlanetScraper):
+    """
+    https://thecastro.com/event_category/music (every upcoming music event).
+    The Castro also shows films; cinema_scraper reads FILM_URL.
+    """
+
+    VENUE = Venue(
+        slug="the_castro_theatre",
+        link="https://thecastro.com/",
+        area="castro",
+        address="429 Castro St, San Francisco, CA 94114",
+        map_link="https://maps.app.goo.gl/oQtq7c7pvUFNFycVA",
+    )
+    URL = "https://thecastro.com/event_category/music"
+    FILM_URL = "https://thecastro.com/event_category/film"
+    CARD_SELECTOR = ".upcoming-events-cat-list .mix.detail-information"
+    DATE_SELECTOR = ".date-show"
+
+
 SCRAPERS = [
     ("bottom_of_the_hill", BottomOfTheHillScraper.scrape),
     ("the_independent", IndependentScraper.scrape),
@@ -786,4 +814,5 @@ SCRAPERS = [
     ("cafe_du_nord", CafeDuNordScraper.scrape),
     ("the_fox_oakland", FoxOaklandScraper.scrape),
     ("the_greek_theatre", GreekTheatreScraper.scrape),
+    ("the_castro_theatre", CastroScraper.scrape),
 ]

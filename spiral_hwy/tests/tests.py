@@ -14,6 +14,7 @@ from omegaconf import DictConfig
 from selenium.webdriver.common.by import By
 
 from spiral_hwy.tools.alamo_scraper import AlamoScraper
+from spiral_hwy.tools.castro_scraper import parse_films
 from spiral_hwy.tools.cinema_scraper import (
     CinemaScraper,
     MovieShowing,
@@ -36,6 +37,7 @@ from spiral_hwy.tools.music_venues import (
     BottomOfTheHillScraper,
     BrickAndMortarScraper,
     CafeDuNordScraper,
+    CastroScraper,
     ChapelScraper,
     FoxOaklandScraper,
     GreatAmericanMusicHallScraper,
@@ -784,3 +786,53 @@ def test_the_greek_theatre():
     ]
     assert events[0].doors == "1730" and events[0].time == "1900"
     assert all(e.venue == "the_greek_theatre" for e in events)
+
+
+def test_the_castro():
+    """
+    Test The Castro's music page against a saved copy of
+    https://thecastro.com/event_category/music (2026-10-27). Its cards match
+    The Fox's, but with a .date-show start ("October 29, 2026 8:00pm").
+    """
+    events = CastroScraper.parse(websites("the_castro", "music.html"))
+    by_title = {e.title: e for e in events}
+
+    assert len(events) == 46
+    assert len({e.id for e in events}) == len(events)
+    assert all(e.venue == "the_castro_theatre" for e in events)
+
+    e = by_title["Daði Freyr"]
+    assert (e.date, e.doors, e.time) == ("2026-10-29", "1900", "2000")
+    assert e.tagline == "Too Much, Not Enough"
+    assert not e.sold_out
+    assert e.ticket_link.startswith("https://www.ticketmaster.com/dai-freyr-")
+    assert e.link == "https://thecastro.com/events/dadi-freyr-261029"
+
+    assert by_title["Rebecca Black"].sold_out
+    assert sum(e.sold_out for e in events) == 7
+
+
+def test_the_castro_films():
+    """
+    Test The Castro's film page against a saved copy of
+    https://thecastro.com/event_category/film (2026-10-27). Each screening
+    becomes a Castro movie listing; a multi-day festival with no show time is
+    skipped.
+    """
+    listings = parse_films(websites("the_castro", "film.html"))
+    films = [(d, t) for d in sorted(listings) for t in listings[d]]
+
+    assert len(films) == 11
+    assert ("2026-11-02", "Club Kid") in films
+    assert not any(t == "30th SF Silent Film Festival" for _, t in films)
+
+    # Two screenings on one day share one listing, earliest first
+    film = listings["2026-12-02"]["Cameron Winter at Carnegie Hall"]
+    assert film["rating"] == ""
+    [castro] = film["listings"]
+    assert (castro.theater, castro.area) == ("the_castro_theatre", "castro")
+    assert [(s.time, s.available) for s in castro.showings] == [
+        ("1930", "SOLD OUT"),
+        ("2145", ""),
+    ]
+    assert castro.showings[0].link.startswith("https://www.ticketweb.com/")
