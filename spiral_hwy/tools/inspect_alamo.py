@@ -12,10 +12,10 @@ Usage:
 import time
 from pathlib import Path
 
+from cinema_scraper import get_driver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from cinema_scraper import get_driver
 
 URL = "https://drafthouse.com/sf"
 OUTPUT_FILE = Path(__file__).parent.parent / "alamo_dom_dump.html"

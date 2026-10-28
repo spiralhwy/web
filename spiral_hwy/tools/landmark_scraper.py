@@ -16,12 +16,12 @@ from datetime import datetime, timedelta
 import pytz
 import requests
 from alamo_scraper import AlamoScraper
+from cinema_scraper import MovieListing, MovieShowing, atomic_write_bytes
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from cinema_scraper import MovieListing, MovieShowing, atomic_write_bytes
 
 LANDMARK_SHOWTIMES_URL = "https://www.landmarktheatres.com/showtimes/"
 LANDMARK_THEATER_ID = "X00U8"

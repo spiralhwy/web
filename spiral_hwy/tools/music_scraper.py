@@ -124,9 +124,12 @@ def _parse_12h_time(text: str) -> str | None:
 
 
 def _normalize_age(text: str) -> str:
-    """'••• 21 AND OVER' -> '21+', '••• ALL AGES' / 'all-ages' -> 'All Ages'."""
+    """
+    '••• 21 AND OVER' / 'Ages 21 and up' -> '21+',
+    '••• ALL AGES' / 'all-ages' -> 'All Ages'.
+    """
     text = _clean(text.replace("•", ""))
-    m = re.match(r"(\d+)\s*(\+|AND\s+OVER|AND\s+UP)", text, re.IGNORECASE)
+    m = re.search(r"\b(\d+)\s*(\+|AND\s+OVER|AND\s+UP)", text, re.IGNORECASE)
     if m:
         return f"{m.group(1)}+"
     if re.fullmatch(r"ALL[\s-]AGES", text, re.IGNORECASE):
@@ -164,6 +167,17 @@ def fetch_html(url: str, encoding: str | None = None) -> str:
     if encoding:
         resp.encoding = encoding
     return resp.text
+
+
+def drop_past(events: List[MusicEvent], today: date | None = None) -> List[MusicEvent]:
+    """
+    Drop shows dated before yesterday; some venues leave finished shows listed
+    for a few days. (Yesterday stays, for shows that run past midnight.)
+    """
+    if today is None:
+        today = datetime.now(PACIFIC_TZ).date()
+    cutoff = (today - timedelta(days=1)).isoformat()
+    return [e for e in events if e.date >= cutoff]
 
 
 def dedupe(events: List[MusicEvent]) -> List[MusicEvent]:
@@ -231,7 +245,7 @@ def main():
             print("-" * 10, f"scrape failed {name}", "-" * 10)
             print(f"Exception:\n{e}")
 
-    events = dedupe(events)
+    events = dedupe(drop_past(events))
     for e in events:
         save_flyer(e, flyer_dir)
 
