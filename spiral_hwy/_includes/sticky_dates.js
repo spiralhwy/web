@@ -17,11 +17,15 @@
             wrappers.forEach(w => stickyObserver.observe(w));
 
             window.addEventListener('scroll', function() {
-                // find the last wrapper (in DOM order) whose natural position
-                // has scrolled to or past the viewport top — that's the visible sticky header
+                // The visible sticky header is the last shown wrapper (in DOM order)
+                // that has reached the viewport top: every passed wrapper stays stuck
+                // at top 0, the rest sit below. Don't compare offsetTop to scrollY:
+                // a stuck element's offsetTop tracks its stuck spot, rounded to whole
+                // pixels, so on fractional scroll positions (hi-DPI, zoom, trackpads)
+                // it flickers past scrollY and re-flashes the same header.
                 let active = null;
                 wrappers.forEach(w => {
-                    if (w.offsetTop <= window.scrollY) {
+                    if (w.style.display !== 'none' && w.getBoundingClientRect().top <= 1) {
                         active = w;
                     }
                 });
