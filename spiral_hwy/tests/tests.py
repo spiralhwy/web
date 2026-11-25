@@ -34,6 +34,7 @@ from spiral_hwy.tools.music_scraper import (
     infer_date,
 )
 from spiral_hwy.tools.music_venues import (
+    BillGrahamCivicScraper,
     BottomOfTheHillScraper,
     BrickAndMortarScraper,
     CafeDuNordScraper,
@@ -836,3 +837,42 @@ def test_the_castro_films():
         ("2145", ""),
     ]
     assert castro.showings[0].link.startswith("https://www.ticketweb.com/")
+
+
+def test_bill_graham_civic_auditorium():
+    """
+    Test Bill Graham Civic Auditorium against a saved copy of
+    https://billgrahamcivic.com/event_category/music (2026-11-25). The home
+    page also lists League One Volleyball games; the music category page
+    holds only the shows. Links to apeconcerts.com point at the venue site.
+    """
+    events = BillGrahamCivicScraper.parse(
+        websites("bill_graham_civic_auditorium", "music.html")
+    )
+    by_id = {e.id: e for e in events}
+
+    assert len(events) == 16
+    assert len(by_id) == len(events)
+    assert all(e.venue == "bill_graham_civic_auditorium" for e in events)
+    assert all(e.area == "civic_center" for e in events)
+    assert not any("Volleyball" in e.tagline for e in events)
+
+    e = events[0]
+    assert (e.date, e.doors, e.time, e.title) == (
+        "2026-11-25",
+        "1900",
+        "2000",
+        "Steve Lacy",
+    )
+    assert e.sold_out
+    assert e.link == "https://billgrahamcivic.com/events/steve-lacy-261125"
+    assert e.ticket_link.startswith("https://www.ticketmaster.com/steve-lacy-")
+    assert all(e.link.startswith("https://billgrahamcivic.com/events/") for e in events)
+
+    # three nights of ILLENIUM, each its own event
+    assert [e.date for e in events if e.title == "ILLENIUM"] == [
+        "2026-12-30",
+        "2026-12-31",
+        "2027-01-01",
+    ]
+    assert sum(e.sold_out for e in events) == 6
