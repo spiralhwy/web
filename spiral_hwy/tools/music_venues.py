@@ -666,7 +666,7 @@ class CafeDuNordScraper:
 
 # ----------------------------------------------------------------------
 # Another Planet Entertainment venue sites
-# (The Fox Oakland, The Greek Theatre)
+# (The Fox Oakland, The Greek Theatre, The Castro, Bill Graham Civic Auditorium)
 # ----------------------------------------------------------------------
 
 
@@ -804,6 +804,40 @@ class CastroScraper(AnotherPlanetScraper):
     DATE_SELECTOR = ".date-show"
 
 
+class BillGrahamCivicScraper(AnotherPlanetScraper):
+    """
+    https://billgrahamcivic.com/event_category/music. The home page also lists
+    non-music events (League One Volleyball games), and its cards don't say
+    which is which, so read the music category page instead. Shows in the
+    smaller Theater at Bill Graham Civic Auditorium are listed here too.
+
+    The category page links each show to Another Planet's own site
+    (apeconcerts.com/events/<slug>); link to the venue's page for it instead,
+    which has the same slug.
+    """
+
+    VENUE = Venue(
+        slug="bill_graham_civic_auditorium",
+        link="https://billgrahamcivic.com/",
+        area="civic_center",
+        address="99 Grove St, San Francisco, CA 94102",
+    )
+    URL = "https://billgrahamcivic.com/event_category/music"
+    CARD_SELECTOR = ".upcoming-events-cat-list .mix.detail-information"
+    DATE_SELECTOR = ".date-show"
+
+    @classmethod
+    def _parse_event(cls, card: Tag) -> MusicEvent | None:
+        event = super()._parse_event(card)
+        if event is not None:
+            event.link = re.sub(
+                r"^https://apeconcerts\.com/events/",
+                "https://billgrahamcivic.com/events/",
+                event.link,
+            )
+        return event
+
+
 SCRAPERS = [
     ("bottom_of_the_hill", BottomOfTheHillScraper.scrape),
     ("the_independent", IndependentScraper.scrape),
@@ -815,4 +849,5 @@ SCRAPERS = [
     ("the_fox_oakland", FoxOaklandScraper.scrape),
     ("the_greek_theatre", GreekTheatreScraper.scrape),
     ("the_castro_theatre", CastroScraper.scrape),
+    ("bill_graham_civic_auditorium", BillGrahamCivicScraper.scrape),
 ]

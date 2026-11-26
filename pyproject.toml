@@ -6,6 +6,9 @@ authors = ["MJG"]
 readme = "README.md"
 packages = [{ include = "spiral_hwy/tools" }]
 
+[tool.poetry.scripts]
+spiral-hwy = "spiral_hwy.tools.cli:main"
+
 [tool.poetry.dependencies]
 python = "^3.12"
 hydra-core = "^1.3.2"
@@ -59,8 +62,13 @@ sequence = ["lint-py-isort", "lint-py-black", "lint-yml", "lint-css", "lint-njk"
 sequence = [ "lint-py-black-check", "lint-yml", "lint-css", "lint-njk"]
 ignore_fail = true
 
+[tool.poe.tasks.scrape]
+help = "Scrape cinema and music listings"
+cmd = "spiral-hwy scrape"
+
 [tool.poe.tasks.serve]
-cmd = "npx eleventy --serve"
+help = "Serve the site locally"
+cmd = "spiral-hwy serve"
 
 
 [build-system]
