@@ -14,24 +14,37 @@ Get to great art.
 
 ## Usage
 
-Run scraper locally:
+The `spiral-hwy` command (installed by `poetry install`) wraps the common tasks.
+Run `poetry run spiral-hwy --help` for all options.
+
+Scrape all listings (cinema + music):
 ```
-poetry run ./spiral_hwy/tools/cinema_scraper.py
+poetry run spiral-hwy scrape
 ```
 
-Build the project:
+Scrape only one source, or run cinema scrapes in parallel:
 ```
-npx eleventy
-```
-
-Host locally:
-```
-npx eleventy --serve
+poetry run spiral-hwy scrape cinema
+poetry run spiral-hwy scrape music
+poetry run spiral-hwy scrape cinema --workers 4
 ```
 
-Serve Eleventy website (same as above):
+Serve the website locally (http://localhost:8080, live reload):
 ```
-poetry poe serve
+poetry run spiral-hwy serve
+poetry run spiral-hwy serve --port 8081
+```
+
+Build the site into `public/`:
+```
+poetry run spiral-hwy build
+```
+
+The same commands are available as Poe tasks: `poetry run poe scrape`, `poetry run poe serve`.
+
+Hydra config overrides can still be passed by running the cinema scraper directly:
+```
+poetry run ./spiral_hwy/tools/cinema_scraper.py veezi=test
 ```
 
 
